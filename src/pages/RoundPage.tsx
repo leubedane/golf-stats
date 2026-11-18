@@ -15,6 +15,7 @@ import {
 import type { Round, RoundHole, Shot } from '../domain/types';
 import { useT, type Translate } from '../i18n/i18n';
 import { classLabel } from '../components/labels';
+import { formatSg } from '../components/SgBars';
 import { DEFAULT_SETTINGS } from '../domain/settings';
 import { baselineFor } from '../strokesGained/baselines';
 import { shotStrokesGained } from '../strokesGained/strokesGained';
@@ -23,11 +24,6 @@ import { ShotForm } from './ShotForm';
 
 function formatDistance(m: number): string {
   return Number.isInteger(m) ? String(m) : m.toFixed(1);
-}
-
-export function formatSg(sg: number): string {
-  const rounded = Math.round(sg * 100) / 100;
-  return rounded > 0 ? `+${rounded.toFixed(2)}` : rounded.toFixed(2);
 }
 
 function shotSummary(shot: Shot, t: Translate): string {
@@ -88,7 +84,7 @@ export function RoundPage() {
   async function finish() {
     if (!confirm(t('round.finishConfirm'))) return;
     await persist(finishRound(round!));
-    navigate('/');
+    navigate(`/rounds/${round!.id}/summary`);
   }
 
   async function remove() {
@@ -139,7 +135,7 @@ export function RoundPage() {
                 <li key={s.id}>
                   <button className={`shot-row ${s.id === editingId ? 'selected' : ''}`} onClick={() => setEditingId(s.id === editingId ? null : s.id)}>
                     <span className="grow">{shotSummary(s, t)}</span>
-                    {sg !== null && <span className={`sg ${sg >= 0 ? 'pos' : 'neg'}`}>{formatSg(sg)}</span>}
+                    {sg !== null && <span className="sg">{formatSg(sg)}</span>}
                   </button>
                 </li>
               );
@@ -196,6 +192,9 @@ export function RoundPage() {
       )}
 
       <div className="stack round-actions">
+        <Link className="button" to={`/rounds/${round.id}/summary`}>
+          {t('round.summary')}
+        </Link>
         {!round.finishedAt && (
           <button className={isLast && hole.outcome ? 'primary' : ''} onClick={finish}>
             {t('round.finish')}

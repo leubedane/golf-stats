@@ -3,6 +3,7 @@ import { useT } from './i18n/i18n';
 import { RoundsPage } from './pages/RoundsPage';
 import { NewRoundPage } from './pages/NewRoundPage';
 import { RoundPage } from './pages/RoundPage';
+import { RoundSummaryPage } from './pages/RoundSummaryPage';
 import { CoursesPage } from './pages/CoursesPage';
 import { CourseSearchPage } from './pages/CourseSearchPage';
 import { CourseEditPage } from './pages/CourseEditPage';
@@ -18,6 +19,7 @@ export function App() {
           <Route path="/" element={<RoundsPage />} />
           <Route path="/rounds/new" element={<NewRoundPage />} />
           <Route path="/rounds/:id" element={<RoundPage />} />
+          <Route path="/rounds/:id/summary" element={<RoundSummaryPage />} />
           <Route path="/courses" element={<CoursesPage />} />
           <Route path="/courses/search" element={<CourseSearchPage />} />
           <Route path="/courses/new" element={<CourseEditPage />} />
