@@ -133,3 +133,10 @@ ol.shots li { margin: 4px 0; }
 .outcome { font-weight: 700; margin: 8px 0 0; }
 .round-actions { margin-top: 24px; }
 ul.error { padding-left: 1.2rem; }
+
+:root { --pos: #1f7a3f; --neg: #b3261e; }
+@media (prefers-color-scheme: dark) { :root { --pos: #6fcf97; --neg: #f2827a; } }
+.shot-row { gap: 8px; }
+.sg { font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+.sg.pos { color: var(--pos); }
+.sg.neg { color: var(--neg); }

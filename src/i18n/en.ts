@@ -192,6 +192,7 @@ export const en = {
   'break.straight': 'Straight',
   'break.rightToLeft': 'Right → left',
   'settings.exportCsv': 'Export shots (CSV)',
+  'round.sgVs': 'Strokes Gained vs {cls}',
 } as const;
 
 export type MessageKey = keyof typeof en;

@@ -14,11 +14,20 @@ import {
 } from '../domain/round';
 import type { Round, RoundHole, Shot } from '../domain/types';
 import { useT, type Translate } from '../i18n/i18n';
+import { classLabel } from '../components/labels';
+import { DEFAULT_SETTINGS } from '../domain/settings';
+import { baselineFor } from '../strokesGained/baselines';
+import { shotStrokesGained } from '../strokesGained/strokesGained';
 import { formatToPar } from './RoundsPage';
 import { ShotForm } from './ShotForm';
 
 function formatDistance(m: number): string {
   return Number.isInteger(m) ? String(m) : m.toFixed(1);
+}
+
+export function formatSg(sg: number): string {
+  const rounded = Math.round(sg * 100) / 100;
+  return rounded > 0 ? `+${rounded.toFixed(2)}` : rounded.toFixed(2);
 }
 
 function shotSummary(shot: Shot, t: Translate): string {
@@ -39,6 +48,7 @@ export function RoundPage() {
   const round = useLiveQuery(() => db.rounds.get(id ?? ''), [id]);
   const bag = useLiveQuery(() => db.clubs.orderBy('order').toArray());
   const allRounds = useLiveQuery(() => db.rounds.toArray());
+  const settings = useLiveQuery(() => db.settings.get('settings')) ?? DEFAULT_SETTINGS;
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const history = useMemo(
@@ -56,6 +66,9 @@ export function RoundPage() {
   const score = holeScore(hole);
   const editingIndex = hole.shots.findIndex((s) => s.id === editingId);
   const isLast = holeIndex === round.holes.length - 1;
+  const primaryClass =
+    settings.handicapClasses.find((c) => c.id === settings.primaryHandicapClassId) ?? settings.handicapClasses[0];
+  const baseline = baselineFor(primaryClass, settings);
 
   const goToHole = (i: number) => {
     setEditingId(null);
@@ -112,18 +125,25 @@ export function RoundPage() {
       </div>
 
       <section className="card">
-        <h2>{t('round.shots')}</h2>
+        <div className="row">
+          <h2 className="grow">{t('round.shots')}</h2>
+          <small className="muted">{t('round.sgVs', { cls: classLabel(primaryClass, settings, t) })}</small>
+        </div>
         {hole.shots.length === 0 ? (
           <p className="muted">{t('round.noShots')}</p>
         ) : (
           <ol className="shots">
-            {hole.shots.map((s) => (
-              <li key={s.id}>
-                <button className={`shot-row ${s.id === editingId ? 'selected' : ''}`} onClick={() => setEditingId(s.id === editingId ? null : s.id)}>
-                  {shotSummary(s, t)}
-                </button>
-              </li>
-            ))}
+            {hole.shots.map((s, i) => {
+              const sg = shotStrokesGained(hole, i, baseline);
+              return (
+                <li key={s.id}>
+                  <button className={`shot-row ${s.id === editingId ? 'selected' : ''}`} onClick={() => setEditingId(s.id === editingId ? null : s.id)}>
+                    <span className="grow">{shotSummary(s, t)}</span>
+                    {sg !== null && <span className={`sg ${sg >= 0 ? 'pos' : 'neg'}`}>{formatSg(sg)}</span>}
+                  </button>
+                </li>
+              );
+            })}
           </ol>
         )}
         {hole.outcome && (

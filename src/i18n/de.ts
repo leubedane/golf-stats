@@ -194,4 +194,5 @@ export const de: Record<MessageKey, string> = {
   'break.straight': 'Gerade',
   'break.rightToLeft': 'Rechts → links',
   'settings.exportCsv': 'Schläge exportieren (CSV)',
+  'round.sgVs': 'Strokes Gained vs. {cls}',
 };

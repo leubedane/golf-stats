@@ -19,6 +19,23 @@ Only the PGA Tour Baseline exists as a full, published table (Broadie, *Every Sh
 - Validate the model against published amateur data points (e.g. HCP 10 from 100 yd fairway ≈ 3.4).
 - Show Modeled Baselines as "modeled" in the app.
 
+## Model
+
+`E_h(lie, d) = E_pga(lie, d) + k_h · w(lie, d)`, floored at 1 stroke.
+
+- `w` (shape, fixed): on the Green `0.25 · (1 − e^(−feet/12))`; off the Green
+  `base(lie) · min(1, 0.5 + yards/100) + 0.0006 · yards` with base Tee 0.60, Fairway/Fringe 0.50,
+  Rough 0.62, Bunker 0.80, Recovery 0.75. Amateurs lose a little on short putts, more on long putts,
+  and most per shot from the rough and bunkers.
+- `k_h` (solved): the expected score on the Reference Course (sum of `E_h(tee, length)` over its
+  holes) equals par 72 plus the typical strokes over par for handicap h, interpolated from
+  0 → +1, 10 → +11, 20 → +22, 30 → +33.
+- Checked against published points: HCP 10 from 100 yd fairway 3.32 (published ≈ 3.38),
+  from 100 yd rough 3.66 (≈ 3.5); HCP 15 from 160 yd fairway 3.76 (≈ 3.92).
+
+The PGA Tour table rows below 20 yd off the Green are estimates, and the table itself was
+transcribed from circulated copies; both should be verified against *Every Shot Counts*.
+
 ## Consequences
 
 - Comparisons against amateur classes are approximations; absolute SG values vs HCP 10/20/30 carry model error, though relative trends over time remain meaningful.
