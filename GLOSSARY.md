@@ -49,6 +49,13 @@ Where a Shot finished relative to its target: Left, On Target or Right (and Shor
 The curve of a Shot's flight: Hook, Draw, Straight, Fade or Slice.
 _Avoid_: Curve, ball flight
 
+**Hole Outcome**:
+How a Hole ended: Holed, or Picked Up from a recorded position (no score for that Hole).
+_Avoid_: Hole result
+
+**Pick-Up**:
+Lifting the ball before holing out; the position it was lifted from ends the last Shot, and the Hole is left out of score totals.
+
 **Penalty**:
 Penalty strokes (1 or 2) charged to the Shot that caused them, e.g. out of bounds or water.
 

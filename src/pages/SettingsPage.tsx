@@ -4,6 +4,7 @@ import { NumberField } from '../components/NumberField';
 import { classLabel } from '../components/labels';
 import { db } from '../db/db';
 import { exportBackup, importBackup, parseBackup } from '../db/backup';
+import { roundsToCsv } from '../domain/csv';
 import { addHandicapClass, isValidHandicap, removeHandicapClass } from '../domain/settings';
 import type { Settings } from '../domain/types';
 import { useT } from '../i18n/i18n';
@@ -18,14 +19,22 @@ export function SettingsPage() {
   if (!settings) return null;
   const save = (next: Settings) => db.settings.put(next);
 
-  async function downloadBackup() {
-    const backup = await exportBackup(db);
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  function download(content: string, type: string, filename: string) {
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `golfstat-backup-${backup.exportedAt.slice(0, 10)}.json`;
+    a.href = URL.createObjectURL(new Blob([content], { type }));
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(a.href);
+  }
+
+  async function downloadBackup() {
+    const backup = await exportBackup(db);
+    download(JSON.stringify(backup, null, 2), 'application/json', `golfstat-backup-${backup.exportedAt.slice(0, 10)}.json`);
+  }
+
+  async function downloadCsv() {
+    const rounds = await db.rounds.orderBy('startedAt').toArray();
+    download(roundsToCsv(rounds), 'text/csv', `golfstat-shots-${new Date().toISOString().slice(0, 10)}.csv`);
   }
 
   async function restoreBackup(file: File) {
@@ -136,6 +145,7 @@ export function SettingsPage() {
         <h2>{t('settings.backup')}</h2>
         <div className="stack">
           <button onClick={downloadBackup}>{t('settings.export')}</button>
+          <button onClick={downloadCsv}>{t('settings.exportCsv')}</button>
           <button onClick={() => fileInput.current?.click()}>{t('settings.import')}</button>
           <input
             ref={fileInput}

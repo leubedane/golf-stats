@@ -1,8 +1,8 @@
 import type { GolfstatDb } from './db';
-import type { Club, Course, Settings } from '../domain/types';
+import type { Club, Course, Round, Settings } from '../domain/types';
 
 export const BACKUP_FORMAT = 'golfstat-backup';
-export const BACKUP_VERSION = 1;
+export const BACKUP_VERSION = 2;
 
 export interface Backup {
   format: typeof BACKUP_FORMAT;
@@ -11,6 +11,7 @@ export interface Backup {
   settings: Settings[];
   clubs: Club[];
   courses: Course[];
+  rounds: Round[];
 }
 
 export async function exportBackup(database: GolfstatDb): Promise<Backup> {
@@ -21,6 +22,7 @@ export async function exportBackup(database: GolfstatDb): Promise<Backup> {
     settings: await database.settings.toArray(),
     clubs: await database.clubs.toArray(),
     courses: await database.courses.toArray(),
+    rounds: await database.rounds.toArray(),
   };
 }
 
@@ -31,15 +33,18 @@ export function parseBackup(text: string): Backup {
     throw new Error(`Unsupported backup version: ${data.version}`);
   if (!Array.isArray(data.settings) || !Array.isArray(data.clubs) || !Array.isArray(data.courses))
     throw new Error('Backup file is incomplete');
-  return data as Backup;
+  // Version 1 backups predate rounds.
+  return { ...(data as Backup), rounds: Array.isArray(data.rounds) ? data.rounds : [] };
 }
 
 /** Replaces all local data with the backup's contents. */
 export async function importBackup(database: GolfstatDb, backup: Backup): Promise<void> {
-  await database.transaction('rw', database.settings, database.clubs, database.courses, async () => {
-    await Promise.all([database.settings.clear(), database.clubs.clear(), database.courses.clear()]);
+  const tables = [database.settings, database.clubs, database.courses, database.rounds];
+  await database.transaction('rw', tables, async () => {
+    await Promise.all(tables.map((t) => t.clear()));
     await database.settings.bulkPut(backup.settings);
     await database.clubs.bulkPut(backup.clubs);
     await database.courses.bulkPut(backup.courses);
+    await database.rounds.bulkPut(backup.rounds);
   });
 }

@@ -1,12 +1,13 @@
 import Dexie, { type EntityTable } from 'dexie';
 import { defaultBag } from '../domain/bag';
 import { DEFAULT_SETTINGS } from '../domain/settings';
-import type { Club, Course, Settings } from '../domain/types';
+import type { Club, Course, Round, Settings } from '../domain/types';
 
 export class GolfstatDb extends Dexie {
   settings!: EntityTable<Settings, 'id'>;
   clubs!: EntityTable<Club, 'id'>;
   courses!: EntityTable<Course, 'id'>;
+  rounds!: EntityTable<Round, 'id'>;
 
   constructor(name = 'golfstat') {
     super(name);
@@ -14,6 +15,9 @@ export class GolfstatDb extends Dexie {
       settings: 'id',
       clubs: 'id, order',
       courses: 'id, externalId, clubName',
+    });
+    this.version(2).stores({
+      rounds: 'id, startedAt, courseId',
     });
   }
 }
