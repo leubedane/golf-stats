@@ -174,3 +174,32 @@ table.data thead th { font-size: 0.8rem; color: var(--muted); font-weight: 600; 
 table.data .selected { background: var(--bg); }
 table.data tr.total th, table.data tr.total td { font-weight: 700; border-bottom: none; }
 table.data tbody th, table.data thead th:first-child { position: sticky; left: 0; background: var(--surface); z-index: 1; }
+
+/* Miss direction: blue (left) and orange (right) around a neutral gray, validated for CVD. */
+:root { --side-left: #2a78d6; --side-right: #eb6834; --side-on: #d5dad7; }
+@media (prefers-color-scheme: dark) { :root { --side-left: #3987e5; --side-right: #d95926; --side-on: #46504a; } }
+
+.tabbar a { padding: 16px 2px; font-size: 0.9rem; }
+.filters .field { margin-bottom: 8px; }
+.stat-tiles.two { grid-template-columns: repeat(2, 1fr); }
+
+.trend { margin: 12px 0 0; }
+.trend svg { display: block; overflow: visible; }
+.trend-zero { stroke: var(--zero); stroke-width: 1; }
+.trend-cross { stroke: var(--border); stroke-width: 1; }
+.trend-line { fill: none; stroke: var(--gained); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.trend-dot { fill: var(--gained); stroke: var(--surface); stroke-width: 2; }
+.trend-axis, .trend-label { fill: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.trend-label { fill: var(--text); font-weight: 700; }
+.trend-caption { font-size: 0.85rem; margin-top: 4px; }
+
+.tendencies .row { gap: 12px; }
+.club-name { width: 4rem; flex: none; }
+.side-bar { display: flex; flex: 1; gap: 2px; height: 14px; }
+.side-seg { min-width: 4px; }
+.side-seg:first-child { border-radius: 4px 0 0 4px; }
+.side-seg:last-child { border-radius: 0 4px 4px 0; }
+.side-seg:only-child { border-radius: 4px; }
+.side-seg.left, .swatch.side-left { background: var(--side-left); }
+.side-seg.onTarget, .swatch.side-onTarget { background: var(--side-on); }
+.side-seg.right, .swatch.side-right { background: var(--side-right); }

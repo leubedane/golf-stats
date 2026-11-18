@@ -9,6 +9,7 @@ import { CourseSearchPage } from './pages/CourseSearchPage';
 import { CourseEditPage } from './pages/CourseEditPage';
 import { BagPage } from './pages/BagPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { StatsPage } from './pages/StatsPage';
 
 export function App() {
   const t = useT();
@@ -24,12 +25,14 @@ export function App() {
           <Route path="/courses/search" element={<CourseSearchPage />} />
           <Route path="/courses/new" element={<CourseEditPage />} />
           <Route path="/courses/:id" element={<CourseEditPage />} />
+          <Route path="/stats" element={<StatsPage />} />
           <Route path="/bag" element={<BagPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
       </main>
       <nav className="tabbar">
         <NavLink to="/" className={({ isActive }) => (isActive || location.pathname.startsWith('/rounds') ? 'active' : '')} end>{t('nav.rounds')}</NavLink>
+        <NavLink to="/stats">{t('nav.stats')}</NavLink>
         <NavLink to="/courses">{t('nav.courses')}</NavLink>
         <NavLink to="/bag">{t('nav.bag')}</NavLink>
         <NavLink to="/settings">{t('nav.settings')}</NavLink>
