@@ -38,6 +38,6 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: >-
             pages deploy dist
-            --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT || 'golf-stats' }}
+            --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT || 'golfstats' }}
             --branch=${{ github.head_ref || github.ref_name }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
