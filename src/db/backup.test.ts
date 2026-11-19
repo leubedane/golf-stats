@@ -27,7 +27,7 @@ describe('database and backup', () => {
     await target.clubs.clear();
     await importBackup(target, parseBackup(json));
     expect(await target.clubs.count()).toBe(13);
-    expect((await target.courses.toArray()).map((c) => c.clubName)).toEqual(['GC Backup']);
+    expect((await target.courses.toArray()).map((c) => c.clubName).sort()).toEqual(['GC Backup', 'Golfclub Tuniberg']);
     expect((await target.rounds.toArray()).map((r) => r.courseName)).toEqual(['GC Backup']);
   });
 

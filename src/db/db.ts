@@ -1,4 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie';
+import { seedCourses } from '../courses/seedCourses';
 import { defaultBag } from '../domain/bag';
 import { DEFAULT_SETTINGS } from '../domain/settings';
 import type { Club, Course, Round, Settings } from '../domain/types';
@@ -19,6 +20,11 @@ export class GolfstatDb extends Dexie {
     this.version(2).stores({
       rounds: 'id, startedAt, courseId',
     });
+    // Seed courses: `populate` covers new databases, the version 3 upgrade existing ones.
+    this.version(3)
+      .stores({})
+      .upgrade((tx) => tx.table('courses').bulkPut(seedCourses()));
+    this.on('populate', (tx) => tx.table('courses').bulkAdd(seedCourses()));
   }
 }
 
