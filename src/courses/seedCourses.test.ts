@@ -33,4 +33,17 @@ describe('seed courses', () => {
     const database = new GolfstatDb('seed-upgrade');
     expect((await database.courses.toArray()).map((c) => c.id).sort()).toEqual(['mine', 'seed-gc-tuniberg']);
   });
+
+  it('link a course seeded before version 4 to PC CADDIE', async () => {
+    const v3 = new Dexie('seed-link');
+    v3.version(1).stores({ settings: 'id', clubs: 'id, order', courses: 'id, externalId, clubName' });
+    v3.version(2).stores({ rounds: 'id, startedAt, courseId' });
+    v3.version(3).stores({});
+    const [seeded] = seedCourses();
+    await v3.table('courses').put({ ...seeded, source: 'manual', externalId: undefined });
+    v3.close();
+
+    const course = await new GolfstatDb('seed-link').courses.get('seed-gc-tuniberg');
+    expect([course?.source, course?.externalId]).toEqual(['pccaddie', '7743.1.1']);
+  });
 });

@@ -121,15 +121,21 @@ const TUNIBERG_TEES: SeedTee[] = [
   },
 ];
 
+export const SEED_TUNIBERG_ID = 'seed-gc-tuniberg';
+
+/** PC CADDIE course id of the 18-hole course, so importing club 0497743 updates it in place. */
+export const TUNIBERG_PCCADDIE_ID = '7743.1.1';
+
 export function seedCourses(now = Date.now()): Course[] {
   return [
     {
-      id: 'seed-gc-tuniberg',
+      id: SEED_TUNIBERG_ID,
       clubName: 'Golfclub Tuniberg',
       courseName: '',
       city: 'Freiburg-Munzingen',
       country: 'Germany',
-      source: 'manual',
+      source: 'pccaddie',
+      externalId: TUNIBERG_PCCADDIE_ID,
       tees: TUNIBERG_TEES.map(({ par, strokeIndex, lengthM, ...tee }) => ({
         ...tee,
         holes: par.map((p, i) => ({

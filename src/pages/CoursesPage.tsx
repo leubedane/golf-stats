@@ -2,7 +2,15 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { Link } from 'react-router-dom';
 import { db } from '../db/db';
 import { courseDisplayName } from '../domain/course';
+import type { Course } from '../domain/types';
 import { useT } from '../i18n/i18n';
+import type { MessageKey } from '../i18n/en';
+
+const SOURCE_LABEL: Record<Course['source'], MessageKey> = {
+  api: 'courses.fromApi',
+  pccaddie: 'courses.fromPcCaddie',
+  manual: 'courses.manualSource',
+};
 
 export function CoursesPage() {
   const t = useT();
@@ -30,7 +38,7 @@ export function CoursesPage() {
                 <strong>{courseDisplayName(c)}</strong>
                 <small className="muted">
                   {[c.city, c.country].filter(Boolean).join(', ')} · {t('courses.tees', { n: c.tees.length })} ·{' '}
-                  {c.source === 'api' ? t('courses.fromApi') : t('courses.manualSource')}
+                  {t(SOURCE_LABEL[c.source])}
                 </small>
               </Link>
             </li>

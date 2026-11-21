@@ -3,12 +3,14 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { GolfCourseApiError, fetchCourse, searchCourses, type ApiCourseSummary } from '../courses/golfCourseApi';
 import { toCourse } from '../courses/golfCourseApi';
+import { PcCaddieError, fetchPcCaddieCourses } from '../courses/pcCaddie';
 import { db, getSettings } from '../db/db';
 import { courseDisplayName } from '../domain/course';
 import { useT, type Translate } from '../i18n/i18n';
 
 export function errorMessage(e: unknown, t: Translate): string {
   if (e instanceof GolfCourseApiError) return e.kind === 'noKey' ? t('search.noKey') : t(`error.${e.kind}`);
+  if (e instanceof PcCaddieError) return t(`pccaddie.${e.kind}`);
   return String(e);
 }
 
@@ -19,6 +21,7 @@ export function CourseSearchPage() {
   const [results, setResults] = useState<ApiCourseSummary[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [clubId, setClubId] = useState('');
   const savedIds = useLiveQuery(async () => new Set((await db.courses.toArray()).map((c) => c.externalId)));
 
   async function search(e: React.FormEvent) {
@@ -44,6 +47,20 @@ export function CourseSearchPage() {
       const course = toCourse(await fetchCourse(summary.id, settings.golfCourseApiKey));
       await db.courses.put(course);
       navigate(`/courses/${course.id}`);
+    } catch (err) {
+      setError(errorMessage(err, t));
+      setBusy(false);
+    }
+  }
+
+  async function importPcCaddie(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError('');
+    try {
+      const courses = await fetchPcCaddieCourses(clubId, await db.courses.toArray());
+      await db.courses.bulkPut(courses);
+      navigate(courses.length === 1 ? `/courses/${courses[0].id}` : '/courses');
     } catch (err) {
       setError(errorMessage(err, t));
       setBusy(false);
@@ -98,6 +115,21 @@ export function CourseSearchPage() {
           ))}
         </ul>
       )}
+
+      <h2 className="section">{t('pccaddie.title')}</h2>
+      <p className="muted">{t('pccaddie.hint')}</p>
+      <form className="row" onSubmit={importPcCaddie}>
+        <input
+          className="grow"
+          inputMode="numeric"
+          placeholder={t('pccaddie.placeholder')}
+          value={clubId}
+          onChange={(e) => setClubId(e.target.value)}
+        />
+        <button className="primary" disabled={busy || !clubId.trim()}>
+          {t('pccaddie.button')}
+        </button>
+      </form>
     </>
   );
 }

@@ -48,8 +48,8 @@ export interface Course {
   courseName: string;
   city: string;
   country: string;
-  source: 'api' | 'manual';
-  /** Id at GolfCourseAPI when fetched from there. */
+  source: 'api' | 'pccaddie' | 'manual';
+  /** Id at the source: GolfCourseAPI course id, or PC CADDIE course id (e.g. 7743.1.1). */
   externalId?: string;
   tees: Tee[];
   updatedAt: number;

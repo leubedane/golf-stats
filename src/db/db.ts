@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie';
-import { seedCourses } from '../courses/seedCourses';
+import { SEED_TUNIBERG_ID, TUNIBERG_PCCADDIE_ID, seedCourses } from '../courses/seedCourses';
 import { defaultBag } from '../domain/bag';
 import { DEFAULT_SETTINGS } from '../domain/settings';
 import type { Club, Course, Round, Settings } from '../domain/types';
@@ -24,6 +24,16 @@ export class GolfstatDb extends Dexie {
     this.version(3)
       .stores({})
       .upgrade((tx) => tx.table('courses').bulkPut(seedCourses()));
+    // Link the seeded course to its PC CADDIE course, so a PC CADDIE import updates it.
+    this.version(4)
+      .stores({})
+      .upgrade((tx) =>
+        tx
+          .table('courses')
+          .where('id')
+          .equals(SEED_TUNIBERG_ID)
+          .modify({ source: 'pccaddie', externalId: TUNIBERG_PCCADDIE_ID }),
+      );
     this.on('populate', (tx) => tx.table('courses').bulkAdd(seedCourses()));
   }
 }

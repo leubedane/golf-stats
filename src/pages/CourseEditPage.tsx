@@ -111,7 +111,7 @@ export function CourseEditPage() {
             <input value={course.country} onChange={(e) => change({ ...course, country: e.target.value })} />
           </label>
         </div>
-        {course.externalId && (
+        {course.source === 'api' && course.externalId && (
           <button onClick={refresh}>{t('courses.refresh')}</button>
         )}
         {error && <p className="error">{error}</p>}
