@@ -244,6 +244,27 @@ export const en = {
   'stats.sgPerPutt': 'SG / putt',
   'stats.tendencies': 'Direction and shape by club',
   'stats.noTendencies': 'Record direction or shape on your shots to see tendencies.',
+
+  'strategy.title': 'Strategy',
+  'strategy.courseTitle': 'Course Strategy',
+  'strategy.hint': 'Your plan for each hole: Tee Club, Tee Target, and where to miss the green. It is shown on every Round on this course.',
+  'strategy.add': '+ Add strategy',
+  'strategy.hole': 'Hole {n} · Par {par} · {length} m',
+  'strategy.teeClub': 'Tee Club',
+  'strategy.noClub': '—',
+  'strategy.teeTarget': 'Tee Target',
+  'strategy.teeTargetPlaceholder': 'e.g. left edge of the right bunker',
+  'strategy.goodMiss': 'Good Miss',
+  'strategy.dangerSide': 'Danger Side',
+  'strategy.missShort': 'miss: {sides}',
+  'strategy.dangerShort': 'danger: {sides}',
+  'strategy.notes': 'Notes',
+  'strategy.notesPlaceholder': 'Layup distance, green slope, pin positions…',
+  'strategy.updated': 'Updated {date}',
+  'greenSide.short': 'Short',
+  'greenSide.long': 'Long',
+  'greenSide.left': 'Left',
+  'greenSide.right': 'Right',
 } as const;
 
 export type MessageKey = keyof typeof en;

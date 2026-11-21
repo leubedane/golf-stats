@@ -69,7 +69,7 @@ a { color: var(--accent); }
 .field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
 .field > span { font-size: 0.85rem; color: var(--muted); }
 
-input, select, button, .button {
+input, select, textarea, button, .button {
   font: inherit;
   min-height: 44px;
   border-radius: 8px;
@@ -116,6 +116,12 @@ h2.section { margin-top: 8px; }
 .chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .chips button { min-height: 48px; padding: 6px 4px; font-size: 0.95rem; font-weight: 600; }
 .chips button.selected { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+.chips.danger button.selected { background: var(--danger); border-color: var(--danger); }
+
+textarea { resize: vertical; min-height: 72px; }
+.strategy-summary { width: 100%; justify-content: flex-start; text-align: left; border: none; background: none; padding: 0; min-height: auto; font-weight: 400; }
+.strategy-summary .danger-text { color: var(--danger); }
+.strategy-notes { white-space: pre-wrap; margin: 8px 0; }
 
 .big-number { font-size: 1.6rem; font-weight: 700; text-align: center; min-height: 56px; }
 .shot-form .field > span small { font-weight: 400; }

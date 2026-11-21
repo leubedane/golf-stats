@@ -1,9 +1,10 @@
 import 'fake-indexeddb/auto';
 import { describe, expect, it } from 'vitest';
-import { GolfstatDb, ensureSeeded, getSettings } from './db';
+import { GolfstatDb, deleteCourse, ensureSeeded, getSettings, saveStrategy } from './db';
 import { exportBackup, importBackup, parseBackup } from './backup';
 import { emptyCourse } from '../domain/course';
 import { startRound } from '../domain/round';
+import { emptyStrategy } from '../domain/holeStrategy';
 
 describe('database and backup', () => {
   it('seeds default settings and bag once', async () => {
@@ -20,6 +21,7 @@ describe('database and backup', () => {
     const course = { ...emptyCourse('male'), clubName: 'GC Backup' };
     await source.courses.put(course);
     await source.rounds.put(startRound({ course, tee: course.tees[0], startHole: 1, holeCount: 18, handicap: 6.8 }));
+    await saveStrategy({ ...emptyStrategy(course.id, 3), teeTarget: 'left bunker' }, source);
     const json = JSON.stringify(await exportBackup(source));
 
     const target = new GolfstatDb('backup-target');
@@ -29,6 +31,32 @@ describe('database and backup', () => {
     expect(await target.clubs.count()).toBe(13);
     expect((await target.courses.toArray()).map((c) => c.clubName).sort()).toEqual(['GC Backup', 'Golfclub Tuniberg']);
     expect((await target.rounds.toArray()).map((r) => r.courseName)).toEqual(['GC Backup']);
+    expect((await target.holeStrategies.toArray()).map((s) => s.teeTarget)).toEqual(['left bunker']);
+  });
+
+  it('reads version 2 backups without Hole Strategies', () => {
+    const v2 = { format: 'golfstat-backup', version: 2, exportedAt: '', settings: [], clubs: [], courses: [], rounds: [] };
+    expect(parseBackup(JSON.stringify(v2)).holeStrategies).toEqual([]);
+  });
+
+  it('stores a Hole Strategy, and deletes it once emptied', async () => {
+    const database = new GolfstatDb('strategy-save');
+    const s = { ...emptyStrategy('c', 1), notes: 'aim at the church' };
+    await saveStrategy(s, database);
+    expect((await database.holeStrategies.get(s.id))?.updatedAt).toBeGreaterThan(0);
+    await saveStrategy({ ...s, notes: '' }, database);
+    expect(await database.holeStrategies.count()).toBe(0);
+  });
+
+  it('deletes a Course together with its Course Strategy', async () => {
+    const database = new GolfstatDb('strategy-cascade');
+    const course = emptyCourse('male');
+    await database.courses.put(course);
+    await saveStrategy({ ...emptyStrategy(course.id, 1), notes: 'a' }, database);
+    await saveStrategy({ ...emptyStrategy('other', 1), notes: 'b' }, database);
+    await deleteCourse(course.id, database);
+    expect(await database.courses.get(course.id)).toBeUndefined();
+    expect((await database.holeStrategies.toArray()).map((s) => s.courseId)).toEqual(['other']);
   });
 
   it('reads version 1 backups without rounds', () => {

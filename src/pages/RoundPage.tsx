@@ -1,7 +1,9 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { db } from '../db/db';
+import { HoleStrategyCard } from '../components/HoleStrategyCard';
+import { db, saveStrategy } from '../db/db';
+import { strategyId } from '../domain/holeStrategy';
 import {
   currentHoleIndex,
   deleteShot,
@@ -46,6 +48,15 @@ export function RoundPage() {
   const allRounds = useLiveQuery(() => db.rounds.toArray());
   const settings = useLiveQuery(() => db.settings.get('settings')) ?? DEFAULT_SETTINGS;
   const [editingId, setEditingId] = useState<string | null>(null);
+  const requested = Number(params.get('h'));
+  const holeIndex =
+    round && params.has('h') && requested >= 0 && requested < round.holes.length ? requested : round ? currentHoleIndex(round) : 0;
+  const holeNumber = round?.holes[holeIndex]?.number;
+  // null once loaded without a Hole Strategy, undefined while loading.
+  const strategy = useLiveQuery(
+    async () => (round && holeNumber ? ((await db.holeStrategies.get(strategyId(round.courseId, holeNumber))) ?? null) : undefined),
+    [round?.courseId, holeNumber],
+  );
 
   const history = useMemo(
     () => (allRounds ?? []).flatMap((r) => r.holes.flatMap((h) => h.shots)),
@@ -55,8 +66,6 @@ export function RoundPage() {
   if (round === undefined || !bag) return null;
   if (round === null) return <p>Round not found.</p>;
 
-  const requested = Number(params.get('h'));
-  const holeIndex = params.has('h') && requested >= 0 && requested < round.holes.length ? requested : currentHoleIndex(round);
   const hole: RoundHole = round.holes[holeIndex];
   const totals = roundTotals(round);
   const score = holeScore(hole);
@@ -119,6 +128,18 @@ export function RoundPage() {
           </p>
         )}
       </div>
+
+      {strategy !== undefined && (
+        <HoleStrategyCard
+          key={hole.number}
+          courseId={round.courseId}
+          hole={hole}
+          strategy={strategy ?? undefined}
+          bag={bag}
+          t={t}
+          onSave={(s) => saveStrategy(s)}
+        />
+      )}
 
       <section className="card">
         <div className="row">

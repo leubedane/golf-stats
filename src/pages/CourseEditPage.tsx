@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { NumberField } from '../components/NumberField';
 import { fetchCourse, toCourse } from '../courses/golfCourseApi';
-import { db, getSettings } from '../db/db';
+import { db, deleteCourse, getSettings } from '../db/db';
 import {
   courseDisplayName,
   courseLengthM,
@@ -81,7 +81,7 @@ export function CourseEditPage() {
 
   async function remove() {
     if (!course || !confirm(t('common.confirmDelete', { name: courseDisplayName(course) }))) return;
-    await db.courses.delete(course.id);
+    await deleteCourse(course.id);
     navigate('/courses');
   }
 
@@ -111,6 +111,11 @@ export function CourseEditPage() {
             <input value={course.country} onChange={(e) => change({ ...course, country: e.target.value })} />
           </label>
         </div>
+        {id && (
+          <Link className="button" to={`/courses/${course.id}/strategy`}>
+            {t('strategy.courseTitle')}
+          </Link>
+        )}
         {course.source === 'api' && course.externalId && (
           <button onClick={refresh}>{t('courses.refresh')}</button>
         )}

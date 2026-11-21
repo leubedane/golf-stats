@@ -106,3 +106,22 @@ export interface Round {
   /** Holes in playing order (e.g. 10..18 then 1..9 when starting on the back nine). */
   holes: RoundHole[];
 }
+
+/** A side of the Green, for a Hole Strategy's Good Miss and Danger Side. */
+export type GreenSide = 'short' | 'long' | 'left' | 'right';
+
+/** The preferred way to play one Hole of a Course, the same from every Tee. */
+export interface HoleStrategy {
+  /** `${courseId}:${holeNumber}`, see `strategyId`. */
+  id: string;
+  courseId: string;
+  holeNumber: number;
+  teeClubId: string | null;
+  /** Club name at the time it was chosen, kept if the Club is later removed from the Bag. */
+  teeClubName: string;
+  teeTarget: string;
+  goodMiss: GreenSide[];
+  dangerSide: GreenSide[];
+  notes: string;
+  updatedAt: number;
+}

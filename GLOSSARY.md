@@ -72,6 +72,30 @@ A Shot whose Lie is Green, recorded with optional Miss Direction and Break.
 **Break**:
 The curve of the green a Putt must follow: Left-to-Right, Straight or Right-to-Left.
 
+## Strategy
+
+**Hole Strategy**:
+The preferred way to play one Hole of a Course: Tee Club, Tee Target, Good Miss, Danger Side and free-text notes. It belongs to the hole number, so it is the same from every Tee, and it is shown on that Hole in every Round on the Course.
+_Avoid_: Game plan, hole notes
+
+**Course Strategy**:
+All Hole Strategies of one Course.
+
+**Tee Club**:
+The Club planned for the first Shot of a Hole.
+
+**Tee Target**:
+Where the first Shot of a Hole should be aimed, described in words (e.g. "left edge of the right bunker").
+_Avoid_: Aim point, line
+
+**Good Miss**:
+The sides of the Green (Short, Long, Left, Right) where missing it is safe. Part of a Hole Strategy, unlike Miss Direction, which records where a Shot actually finished.
+_Avoid_: Bail-out
+
+**Danger Side**:
+The sides of the Green to avoid at all costs. A side is never both a Good Miss and a Danger Side.
+_Avoid_: Trouble
+
 ## Equipment
 
 **Bag**:

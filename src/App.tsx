@@ -6,6 +6,7 @@ import { RoundPage } from './pages/RoundPage';
 import { RoundSummaryPage } from './pages/RoundSummaryPage';
 import { CoursesPage } from './pages/CoursesPage';
 import { CourseSearchPage } from './pages/CourseSearchPage';
+import { CourseStrategyPage } from './pages/CourseStrategyPage';
 import { CourseEditPage } from './pages/CourseEditPage';
 import { BagPage } from './pages/BagPage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -25,6 +26,7 @@ export function App() {
           <Route path="/courses/search" element={<CourseSearchPage />} />
           <Route path="/courses/new" element={<CourseEditPage />} />
           <Route path="/courses/:id" element={<CourseEditPage />} />
+          <Route path="/courses/:id/strategy" element={<CourseStrategyPage />} />
           <Route path="/stats" element={<StatsPage />} />
           <Route path="/bag" element={<BagPage />} />
           <Route path="/settings" element={<SettingsPage />} />
