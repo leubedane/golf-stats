@@ -19,11 +19,24 @@ import {
   sgByShortGameType,
   tendenciesByClub,
 } from '../stats/stats';
+import { combineScoring, ratio, scoringTrend, type ScoringStats } from '../stats/scoring';
 import { baselineFor } from '../strokesGained/baselines';
 import { SG_CATEGORIES, type SgCategory } from '../strokesGained/strokesGained';
 
 const RANGES = ['5', '10', '20', 'all'] as const;
 type Range = (typeof RANGES)[number];
+const SCORING_METRICS = ['fairways', 'gir', 'putts'] as const;
+type ScoringMetric = (typeof SCORING_METRICS)[number];
+
+/** Fairways and GIR as percent, Putts per 18 holes; null when nothing was entered. */
+function scoringValue(stats: ScoringStats, metric: ScoringMetric): number | null {
+  const r = ratio(stats[metric]);
+  if (r === null) return null;
+  return metric === 'putts' ? r * 18 : r * 100;
+}
+
+const formatScoring = (metric: ScoringMetric) => (v: number) => (metric === 'putts' ? v.toFixed(1) : `${Math.round(v)}%`);
+
 const SHORT_GAME_ORDER = ['chipFlat', 'chipHighSpin', 'chipHigh', 'pitch', 'bunkerShot', 'fringePutt'] as const;
 
 export function StatsPage() {
@@ -34,6 +47,7 @@ export function StatsPage() {
   const [classId, setClassId] = useState<string | null>(null);
   const [range, setRange] = useState<Range>('10');
   const [trendCategory, setTrendCategory] = useState<SgCategory | 'total'>('total');
+  const [scoringMetric, setScoringMetric] = useState<ScoringMetric>('gir');
 
   const s = settings ?? DEFAULT_SETTINGS;
   const classes = [
@@ -55,12 +69,15 @@ export function StatsPage() {
       shortGame: sgByShortGameType(rounds, baseline),
       putting: puttingByBand(rounds, baseline),
       tendencies: tendenciesByClub(rounds),
+      scoringTrend: scoringTrend(rounds),
     };
   }, [rounds, baseline]);
 
   if (!settings || !finished || !bag) return null;
   const bagNames = bag.map((c) => c.name);
   const catLabel = (c: SgCategory | 'total') => t(`sg.${c}`);
+  const scoringTotal = combineScoring(stats.scoringTrend.map((p) => p.stats));
+  const scoringLabel = (m: ScoringMetric) => t(m === 'putts' ? 'stats.puttsPerRound' : m === 'gir' ? 'stats.gir' : 'stats.fairways');
   const shotsDetail = (n: number, sg: number) => t('stats.shotsTotal', { n, total: formatSg(sg) });
 
   if (finished.length === 0) {
@@ -118,6 +135,45 @@ export function StatsPage() {
           {selected.kind !== 'pga' && <p className="muted legend">{t('summary.modeledNote')}</p>}
         </section>
       )}
+
+      <section className="card">
+        <h2>{t('stats.scoring')}</h2>
+        {scoringTotal.putts.of === 0 && scoringTotal.fairways.of === 0 ? (
+          <p className="muted">{t('stats.noScoring')}</p>
+        ) : (
+          <>
+            <div className="stat-tiles">
+              {SCORING_METRICS.map((m) => {
+                const v = scoringValue(scoringTotal, m);
+                return (
+                  <div key={m} className="card stat">
+                    <small className="muted">{scoringLabel(m)}</small>
+                    <strong>{v === null ? '–' : formatScoring(m)(v)}</strong>
+                  </div>
+                );
+              })}
+            </div>
+            <Chips
+              options={SCORING_METRICS}
+              value={scoringMetric}
+              onChange={(v) => v && setScoringMetric(v)}
+              label={scoringLabel}
+              columns={3}
+              ariaLabel={t('stats.scoring')}
+            />
+            <TrendChart
+              ariaLabel={`${t('stats.scoring')}: ${scoringLabel(scoringMetric)}`}
+              format={formatScoring(scoringMetric)}
+              points={stats.scoringTrend.flatMap((p) => {
+                const value = scoringValue(p.stats, scoringMetric);
+                return value === null
+                  ? []
+                  : [{ key: p.roundId, value, label: `${new Date(p.startedAt).toLocaleDateString()} · ${p.courseName}` }];
+              })}
+            />
+          </>
+        )}
+      </section>
 
       <section className="card">
         <h2>{t('stats.trend')}</h2>

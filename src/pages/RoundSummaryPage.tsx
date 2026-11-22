@@ -11,6 +11,7 @@ import { useT } from '../i18n/i18n';
 import { baselineFor } from '../strokesGained/baselines';
 import { SG_CATEGORIES } from '../strokesGained/strokesGained';
 import { summarizeRound } from '../strokesGained/summary';
+import { ratio, roundScoring, type Count } from '../stats/scoring';
 import { formatToPar } from './RoundsPage';
 
 export function RoundSummaryPage() {
@@ -33,6 +34,11 @@ export function RoundSummaryPage() {
   const summaries = classes.map((cls) => ({ cls, summary: summarizeRound(round, baselineFor(cls, s)) }));
   const current = summaries.find((x) => x.cls.id === selected.id)!.summary;
   const totals = roundTotals(round);
+  const scoring = roundScoring(round);
+  const pct = (c: Count) => {
+    const r = ratio(c);
+    return r === null ? '–' : `${Math.round(r * 100)}%`;
+  };
   const catLabel = (c: string) => t(`sg.${c}` as 'sg.total');
 
   const bars = [
@@ -69,11 +75,25 @@ export function RoundSummaryPage() {
           <small className="muted">{t('summary.sgTotal')}</small>
           <strong>{formatSg(current.sg.total)}</strong>
           <small className="muted">{t('summary.vs', { cls: classLabel(selected, s, t) })}</small>
+          <small className="muted">{t('summary.sgCoverage', { n: current.detailedHoles, m: round.holes.length })}</small>
         </div>
         <div className="card stat">
           <small className="muted">{t('summary.putts')}</small>
-          <strong>{current.putts}</strong>
+          <strong>{scoring.putts.of ? scoring.putts.hit : '–'}</strong>
           <small className="muted">{t('summary.penalties', { n: current.penaltyStrokes })}</small>
+        </div>
+      </section>
+
+      <section className="stat-tiles two">
+        <div className="card stat">
+          <small className="muted">{t('summary.fairways')}</small>
+          <strong>{pct(scoring.fairways)}</strong>
+          <small className="muted">{t('summary.ofN', { ...scoring.fairways })}</small>
+        </div>
+        <div className="card stat">
+          <small className="muted">{t('summary.gir')}</small>
+          <strong>{pct(scoring.gir)}</strong>
+          <small className="muted">{t('summary.ofN', { ...scoring.gir })}</small>
         </div>
       </section>
 
@@ -154,8 +174,8 @@ export function RoundSummaryPage() {
         </div>
       </section>
 
-      <Link className="button block" to={`/rounds/${round.id}`}>
-        {t('summary.editShots')}
+      <Link className="button block" to={`/rounds/${round.id}/scorecard`}>
+        {t('round.scorecard')}
       </Link>
     </>
   );

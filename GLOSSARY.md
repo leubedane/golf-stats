@@ -22,7 +22,7 @@ _Avoid_: Hole handicap
 ## Play
 
 **Round**:
-One visit to a Course from one Tee, consisting of the Shots played on each Hole.
+One visit to a Course from one Tee, consisting of a Hole Score and/or the Shots played on each Hole.
 
 **Shot**:
 One stroke at the ball, recorded with its Start Lie, Distance to Pin, Club and optional Miss Direction and Shot Shape.
@@ -52,6 +52,21 @@ _Avoid_: Curve, ball flight
 **Hole Outcome**:
 How a Hole ended: Holed, or Picked Up from a recorded position (no score for that Hole).
 _Avoid_: Hole result
+
+**Hole Score**:
+The result of a Hole entered directly: Strokes (or Picked Up), and optionally Putts, Tee Result and Penalty strokes. Until one is entered, a Detailed hole's Hole Score follows its Shots; once entered it is the official score, and Shots that disagree with it are flagged.
+_Avoid_: Quick score, card score, hole result
+
+**Detailed**:
+A Hole whose Shots end in a Hole Outcome. Only Detailed holes count for Strokes Gained; a Hole with Shots but no Hole Outcome is in progress.
+
+**Tee Result**:
+Where the first Shot on a par 4 or par 5 finished relative to the fairway: Fairway, Left or Right. Entered as part of a Hole Score.
+_Avoid_: Fairway hit, driving accuracy (as the field's name)
+
+**Green in Regulation**:
+Reaching the Green with at least two strokes to spare against par, i.e. Strokes minus Putts is at most par minus 2. Worked out from the Hole Score, never entered.
+_Avoid_: GIR (in UI text)
 
 **Pick-Up**:
 Lifting the ball before holing out; the position it was lifted from ends the last Shot, and the Hole is left out of score totals.

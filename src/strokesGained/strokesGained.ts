@@ -1,4 +1,5 @@
 import { isAroundTheGreen, shotEnd } from '../domain/round';
+import { isDetailed } from '../domain/holeScore';
 import type { Round, RoundHole, Shot } from '../domain/types';
 import type { Baseline } from './baseline';
 
@@ -37,6 +38,8 @@ export interface SgEntry {
 export function roundShotsSg(round: Round, baseline: Baseline): SgEntry[] {
   const entries: SgEntry[] = [];
   for (const hole of round.holes) {
+    // A hole in progress counts once its Shots end in a Hole Outcome.
+    if (!isDetailed(hole)) continue;
     hole.shots.forEach((shot, shotIndex) => {
       const sg = shotStrokesGained(hole, shotIndex, baseline);
       if (sg === null) return;

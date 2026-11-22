@@ -90,6 +90,8 @@ export interface RoundHole {
   strokeIndex: number;
   shots: Shot[];
   outcome?: HoleOutcome;
+  /** Hole Score as entered; absent while the hole's score follows its Shots. */
+  score?: HoleScore;
 }
 
 export interface Round {
@@ -124,4 +126,17 @@ export interface HoleStrategy {
   dangerSide: GreenSide[];
   notes: string;
   updatedAt: number;
+}
+
+/** Where the first Shot on a par 4 or 5 finished relative to the fairway. */
+export type TeeResult = 'fairway' | 'left' | 'right';
+
+/** The result of a Hole entered directly, without its Shots. */
+export interface HoleScore {
+  /** Strokes including Penalties; null when the ball was Picked Up. */
+  strokes: number | null;
+  putts?: number;
+  /** Par 4 and 5 only. */
+  teeResult?: TeeResult;
+  penaltyStrokes?: number;
 }

@@ -4,12 +4,12 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { HoleStrategyCard } from '../components/HoleStrategyCard';
 import { db, saveStrategy } from '../db/db';
 import { strategyId } from '../domain/holeStrategy';
+import { effectiveScore, scoreMismatches, shotPlan, shotsScore } from '../domain/holeScore';
 import {
   currentHoleIndex,
   deleteShot,
   finishHole,
   finishRound,
-  holeScore,
   reopenHole,
   roundTotals,
   saveShot,
@@ -68,7 +68,10 @@ export function RoundPage() {
 
   const hole: RoundHole = round.holes[holeIndex];
   const totals = roundTotals(round);
-  const score = holeScore(hole);
+  const score = shotsScore(hole);
+  const entered = hole.score ? effectiveScore(hole) : null;
+  const mismatches = scoreMismatches(hole);
+  const plan = shotPlan(hole);
   const editingIndex = hole.shots.findIndex((s) => s.id === editingId);
   const isLast = holeIndex === round.holes.length - 1;
   const primaryClass =
@@ -104,8 +107,8 @@ export function RoundPage() {
 
   return (
     <>
-      <Link to="/" className="back">
-        ← {t('nav.rounds')}
+      <Link to={`/rounds/${round.id}/scorecard`} className="back">
+        ← {t('round.scorecard')}
       </Link>
       <div className="round-header">
         <small className="muted">{round.courseName} · {round.teeName}</small>
@@ -125,6 +128,18 @@ export function RoundPage() {
           <p className="center muted">
             {t('round.score')}: <strong>{totals.strokes}</strong> ({t('round.toPar', { n: formatToPar(totals.strokes, totals.par) })}) ·{' '}
             {t('rounds.holesPlayed', { n: totals.holesCompleted })}
+          </p>
+        )}
+        {entered && (
+          <p className="center">
+            {t('round.holeScoreLine', { score: entered.strokes ?? t('round.pickedUp') })}
+            {entered.putts !== undefined && ` · ${t('round.puttsN', { n: entered.putts })}`}
+            {entered.teeResult && ` · ${t(`teeResult.${entered.teeResult}`)}`}
+          </p>
+        )}
+        {mismatches.length > 0 && (
+          <p className="center error">
+            ⚠ {t('mismatch.warning', { fields: mismatches.map((m) => t(`mismatch.${m}`)).join(', ') })}
           </p>
         )}
       </div>
@@ -197,13 +212,15 @@ export function RoundPage() {
           )}
           <button onClick={() => persist(reopenHole(round, holeIndex))}>{t('round.reopen')}</button>
         </div>
-      ) : (
+      ) : strategy === undefined ? null : (
         <ShotForm
           key={`new-${hole.number}-${hole.shots.length}`}
           hole={hole}
           bag={bag}
           history={history}
           t={t}
+          plan={plan}
+          teeClubId={strategy?.teeClubId ?? null}
           onSubmit={onSubmit}
           onPickUp={async (lie, distanceM) => {
             await persist(finishHole(round, holeIndex, { kind: 'pickedUp', lie, distanceM }));

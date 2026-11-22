@@ -2,7 +2,8 @@ import type { GolfstatDb } from './db';
 import type { Club, Course, HoleStrategy, Round, Settings } from '../domain/types';
 
 export const BACKUP_FORMAT = 'golfstat-backup';
-export const BACKUP_VERSION = 3;
+/** 4: Round holes may carry an entered Hole Score (`score`); older backups have none and import unchanged. */
+export const BACKUP_VERSION = 4;
 
 export interface Backup {
   format: typeof BACKUP_FORMAT;

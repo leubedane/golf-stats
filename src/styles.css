@@ -177,7 +177,7 @@ table.data { border-collapse: collapse; width: 100%; font-variant-numeric: tabul
 table.data th, table.data td { padding: 8px 6px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--border); }
 table.data th:first-child { text-align: left; }
 table.data thead th { font-size: 0.8rem; color: var(--muted); font-weight: 600; white-space: normal; vertical-align: bottom; }
-table.data .selected { background: var(--bg); }
+table.data th.selected, table.data td.selected { background: var(--bg); }
 table.data tr.total th, table.data tr.total td { font-weight: 700; border-bottom: none; }
 table.data tbody th, table.data thead th:first-child { position: sticky; left: 0; background: var(--surface); z-index: 1; }
 
@@ -209,3 +209,19 @@ table.data tbody th, table.data thead th:first-child { position: sticky; left: 0
 .side-seg.left, .swatch.side-left { background: var(--side-left); }
 .side-seg.onTarget, .swatch.side-onTarget { background: var(--side-on); }
 .side-seg.right, .swatch.side-right { background: var(--side-right); }
+
+/* Scorecard */
+.scorecard { padding: 8px; }
+.scorecard table.data th, .scorecard table.data td { text-align: center; }
+.scorecard table.data th:first-child { text-align: left; }
+.scorecard-row { cursor: pointer; }
+.scorecard-row.selected th, .scorecard-row.selected td { background: var(--bg); }
+.scorecard-row button.link { font-weight: 700; padding: 0 4px; min-height: 32px; }
+.scorecard-entry td { padding: 12px 4px; text-align: left !important; white-space: normal; background: var(--bg); }
+.score { display: inline-block; min-width: 1.8em; padding: 1px 4px; border-radius: 6px; font-weight: 700; }
+.score-under { background: var(--accent); color: var(--accent-text); border-radius: 50%; }
+.score-bogey { box-shadow: inset 0 0 0 1.5px var(--muted); }
+.score-double { box-shadow: inset 0 0 0 2.5px var(--danger); }
+.hole-score-entry .other-strokes { margin-top: 6px; }
+.hole-score-entry .other-strokes input { width: 5rem; }
+.hole-score-entry .field > span small { font-weight: 400; }

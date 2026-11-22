@@ -1,4 +1,5 @@
 import { courseDisplayName } from './course';
+import { effectiveScore } from './holeScore';
 import { newId } from './ids';
 import type { Club, Course, HoleOutcome, Lie, Round, RoundHole, Shot, Tee } from './types';
 
@@ -46,12 +47,6 @@ export const isFullShot = (lie: Lie, distanceM: number): boolean =>
 
 export const isHoleComplete = (hole: RoundHole): boolean => hole.outcome !== undefined;
 
-/** Strokes on the hole including penalties; null unless holed. */
-export function holeScore(hole: RoundHole): number | null {
-  if (hole.outcome?.kind !== 'holed') return null;
-  return hole.shots.reduce((sum, s) => sum + 1 + s.penaltyStrokes, 0);
-}
-
 export type ShotEnd = { kind: 'holed' } | { kind: 'position'; lie: Lie; distanceM: number } | { kind: 'unknown' };
 
 /** Where a Shot finished: the next Shot's start, the hole, or the pick-up position. */
@@ -77,11 +72,11 @@ export interface RoundTotals {
   par: number;
 }
 
-/** Totals over holes that were holed out (picked-up holes are excluded). */
+/** Totals over holes with Strokes, from the Hole Score or the Shots (Picked Up holes are excluded). */
 export function roundTotals(round: Round): RoundTotals {
   return round.holes.reduce<RoundTotals>(
     (acc, h) => {
-      const score = holeScore(h);
+      const score = effectiveScore(h)?.strokes ?? null;
       if (score === null) return acc;
       return { holesCompleted: acc.holesCompleted + 1, strokes: acc.strokes + score, par: acc.par + h.par };
     },
@@ -89,9 +84,9 @@ export function roundTotals(round: Round): RoundTotals {
   );
 }
 
-/** Index of the first hole that is not complete, or the last hole when all are complete. */
+/** Index of the first hole with no Hole Score that is not complete, or the last hole when all are done. */
 export function currentHoleIndex(round: Round): number {
-  const i = round.holes.findIndex((h) => !isHoleComplete(h));
+  const i = round.holes.findIndex((h) => !isHoleComplete(h) && !h.score);
   return i === -1 ? round.holes.length - 1 : i;
 }
 

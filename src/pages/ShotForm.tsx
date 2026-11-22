@@ -12,6 +12,7 @@ import {
   validateShot,
   type ShotProblem,
 } from '../domain/round';
+import type { ShotPlan } from '../domain/holeScore';
 import type {
   Break,
   Club,
@@ -39,22 +40,29 @@ interface Props {
   t: Translate;
   /** Shot being edited; a new Shot is drafted when absent. */
   editing?: { shot: Shot; index: number };
+  /** What the entered Hole Score says about the next Shot. */
+  plan?: ShotPlan;
+  /** The Hole Strategy's Tee Club, preselected for the first Shot. */
+  teeClubId?: string | null;
   onSubmit: (shot: Shot, action: 'next' | 'holed' | 'update') => void;
   onPickUp: (lie: Lie, distanceM: number) => void;
   onDelete?: () => void;
   onCancel?: () => void;
 }
 
-export function ShotForm({ hole, bag, history, t, editing, onSubmit, onPickUp, onDelete, onCancel }: Props) {
+export function ShotForm({ hole, bag, history, t, editing, plan, teeClubId, onSubmit, onPickUp, onDelete, onCancel }: Props) {
   const initial = editing?.shot;
   const draft = nextShotDraft(hole);
-  const [lie, setLie] = useState<Lie | null>(initial?.lie ?? draft.lie);
+  const firstShot = !initial && hole.shots.length === 0;
+  // The Hole Strategy's Tee Club wins over the history suggestion, for the first Shot only.
+  const strategyClub = firstShot && teeClubId && bag.some((c) => c.id === teeClubId) ? teeClubId : null;
+  const [lie, setLie] = useState<Lie | null>(initial?.lie ?? draft.lie ?? plan?.lie ?? null);
   const [distanceM, setDistanceM] = useState(initial?.distanceM ?? draft.distanceM);
-  const [clubId, setClubId] = useState<string | null>(initial?.clubId ?? null);
-  const [clubTouched, setClubTouched] = useState(Boolean(initial));
+  const [clubId, setClubId] = useState<string | null>(initial?.clubId ?? strategyClub);
+  const [clubTouched, setClubTouched] = useState(Boolean(initial) || strategyClub !== null);
   const [shortGameType, setShortGameType] = useState(initial?.shortGameType);
   const [shape, setShape] = useState(initial?.shape);
-  const [missSide, setMissSide] = useState(initial?.missSide);
+  const [missSide, setMissSide] = useState(initial?.missSide ?? (firstShot ? plan?.missSide : undefined));
   const [missLength, setMissLength] = useState(initial?.missLength);
   const [brk, setBreak] = useState(initial?.break);
   const [penalty, setPenalty] = useState<0 | 1 | 2>(initial?.penaltyStrokes ?? 0);
@@ -113,6 +121,8 @@ export function ShotForm({ hole, bag, history, t, editing, onSubmit, onPickUp, o
     onPickUp(lie, distanceM);
   }
 
+  // The Hole Score says this is the last Shot: holing out becomes the main action.
+  const lastExpected = !editing && plan?.expectedShots === hole.shots.length + 1;
   const putt = lie !== null && isPutt(lie);
   const aroundGreen = lie !== null && isAroundTheGreen(lie, distanceM);
   const fullShot = lie !== null && isFullShot(lie, distanceM);
@@ -122,7 +132,13 @@ export function ShotForm({ hole, bag, history, t, editing, onSubmit, onPickUp, o
 
   return (
     <section className="card shot-form">
-      <h2>{editing ? t('round.editShot', { n: editing.index + 1 }) : t('round.shotN', { n: hole.shots.length + 1 })}</h2>
+      <h2>
+        {editing
+          ? t('round.editShot', { n: editing.index + 1 })
+          : plan?.expectedShots
+            ? t('round.shotOf', { n: hole.shots.length + 1, m: plan.expectedShots })
+            : t('round.shotN', { n: hole.shots.length + 1 })}
+      </h2>
 
       <div className="field">
         <span>{t('shot.lie')}</span>
@@ -229,10 +245,10 @@ export function ShotForm({ hole, bag, history, t, editing, onSubmit, onPickUp, o
       ) : (
         <div className="stack">
           <div className="row">
-            <button className="primary grow" onClick={() => submit('next')}>
+            <button className={`grow ${lastExpected ? '' : 'primary'}`} onClick={() => submit('next')}>
               {t('shot.next')}
             </button>
-            <button className="holed grow" onClick={() => submit('holed')}>
+            <button className={`grow ${lastExpected ? 'primary' : 'holed'}`} onClick={() => submit('holed')}>
               {t('shot.holed')}
             </button>
           </div>

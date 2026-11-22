@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { defaultBag } from '../domain/bag';
 import { emptyCourse } from '../domain/course';
 import { finishHole, newShot, saveShot, startRound } from '../domain/round';
+import { setHoleScore } from '../domain/holeScore';
 import type { Lie, Round, Shot } from '../domain/types';
 import { pgaTourBaseline } from './baseline';
 import { summarizeRound } from './summary';
@@ -33,5 +34,15 @@ describe('round summary', () => {
     expect(s.shotCount).toEqual({ offTheTee: 2, approach: 1, aroundTheGreen: 1, putting: 2 });
     expect(s.putts).toBe(2);
     expect(s.penaltyStrokes).toBe(1);
+    expect(s.detailedHoles).toBe(2);
+  });
+
+  it('lists holes with only a Hole Score, without Strokes Gained', () => {
+    let r = round();
+    r = setHoleScore(r, 0, { strokes: 5, putts: 2 });
+    r = setHoleScore(r, 1, { strokes: null });
+    const s = summarizeRound(r, pgaTourBaseline);
+    expect(s.holes.map((h) => [h.number, h.score, h.sg, h.pickedUp])).toEqual([[1, 5, null, false], [2, null, null, true]]);
+    expect(s.detailedHoles).toBe(0);
   });
 });

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { defaultBag } from '../domain/bag';
 import { emptyCourse } from '../domain/course';
-import { finishHole, newShot, saveShot, startRound, holeScore } from '../domain/round';
+import { finishHole, newShot, saveShot, startRound } from '../domain/round';
+import { shotsScore } from '../domain/holeScore';
 import type { Lie, Round, Shot } from '../domain/types';
 import { pgaTourBaseline } from './baseline';
 import { modeledBaseline } from './modeledBaseline';
@@ -50,7 +51,7 @@ describe('strokes gained per shot', () => {
     const r = play(round(), 0, shots);
     for (const E of [pgaTourBaseline, modeledBaseline(6.8), modeledBaseline(20)]) {
       const sum = r.holes[0].shots.reduce((s, _, i) => s + shotStrokesGained(r.holes[0], i, E)!, 0);
-      expect(sum).toBeCloseTo(E('tee', 350) - holeScore(r.holes[0])!, 10);
+      expect(sum).toBeCloseTo(E('tee', 350) - shotsScore(r.holes[0])!, 10);
     }
   });
 
@@ -62,6 +63,14 @@ describe('strokes gained per shot', () => {
       pgaTourBaseline('fairway', 120) - pgaTourBaseline('green', 8) - 1,
       10,
     );
+  });
+});
+
+describe('Detailed holes only', () => {
+  it('leaves out every Shot of a hole in progress', () => {
+    const r = play(round(), 0, [shot('tee', 350), shot('fairway', 120), shot('green', 5)], false);
+    expect(shotStrokesGained(r.holes[0], 0, pgaTourBaseline)).not.toBeNull();
+    expect(roundShotsSg(r, pgaTourBaseline)).toEqual([]);
   });
 });
 

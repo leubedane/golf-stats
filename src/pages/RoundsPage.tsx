@@ -15,7 +15,7 @@ function RoundItem({ round, t }: { round: Round; t: Translate }) {
   const date = new Date(round.startedAt).toLocaleDateString();
   return (
     <li>
-      <Link className="list-link" to={round.finishedAt ? `/rounds/${round.id}/summary` : `/rounds/${round.id}`}>
+      <Link className="list-link" to={round.finishedAt ? `/rounds/${round.id}/summary` : `/rounds/${round.id}/scorecard`}>
         <span className="row">
           <strong className="grow">{round.courseName}</strong>
           {totals.holesCompleted > 0 && (

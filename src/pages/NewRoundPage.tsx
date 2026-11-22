@@ -39,7 +39,7 @@ export function NewRoundPage() {
     const s = await getSettings();
     const round = startRound({ course, tee, startHole, holeCount: Math.min(holeCount, holeTotal), handicap: s.handicap });
     await db.rounds.put(round);
-    navigate(`/rounds/${round.id}`, { replace: true });
+    navigate(`/rounds/${round.id}/scorecard`, { replace: true });
   }
 
   if (!courses) return null;

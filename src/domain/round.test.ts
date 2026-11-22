@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { shotsScore } from './holeScore';
 import { defaultBag } from './bag';
 import { emptyCourse } from './course';
 import { roundsToCsv } from './csv';
@@ -6,7 +7,6 @@ import {
   currentHoleIndex,
   deleteShot,
   finishHole,
-  holeScore,
   isAroundTheGreen,
   newShot,
   nextShotDraft,
@@ -83,7 +83,7 @@ describe('playing a hole', () => {
     expect(shotEnd(h, 3)).toEqual({ kind: 'holed' });
     expect(shotProgressM(h, 0)).toBe(220);
     expect(shotProgressM(h, 3)).toBe(0.8);
-    expect(holeScore(h)).toBe(5);
+    expect(shotsScore(h)).toBe(5);
     expect(currentHoleIndex(r)).toBe(0);
   });
 
@@ -91,7 +91,7 @@ describe('playing a hole', () => {
     let r = playHole(base, 0, [shot('tee', 150, '7i'), shot('bunker', 12, '56°')], 'none');
     r = finishHole(r, 0, { kind: 'pickedUp', lie: 'bunker', distanceM: 10 });
     expect(shotEnd(r.holes[0], 1)).toEqual({ kind: 'position', lie: 'bunker', distanceM: 10 });
-    expect(holeScore(r.holes[0])).toBeNull();
+    expect(shotsScore(r.holes[0])).toBeNull();
     expect(roundTotals(r)).toEqual({ holesCompleted: 0, strokes: 0, par: 0 });
   });
 

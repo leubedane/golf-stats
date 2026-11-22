@@ -7,6 +7,7 @@ import { RoundSummaryPage } from './pages/RoundSummaryPage';
 import { CoursesPage } from './pages/CoursesPage';
 import { CourseSearchPage } from './pages/CourseSearchPage';
 import { CourseStrategyPage } from './pages/CourseStrategyPage';
+import { ScorecardPage } from './pages/ScorecardPage';
 import { CourseEditPage } from './pages/CourseEditPage';
 import { BagPage } from './pages/BagPage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -22,6 +23,7 @@ export function App() {
           <Route path="/rounds/new" element={<NewRoundPage />} />
           <Route path="/rounds/:id" element={<RoundPage />} />
           <Route path="/rounds/:id/summary" element={<RoundSummaryPage />} />
+          <Route path="/rounds/:id/scorecard" element={<ScorecardPage />} />
           <Route path="/courses" element={<CoursesPage />} />
           <Route path="/courses/search" element={<CourseSearchPage />} />
           <Route path="/courses/new" element={<CourseEditPage />} />
