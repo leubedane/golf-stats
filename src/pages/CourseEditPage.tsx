@@ -116,6 +116,11 @@ export function CourseEditPage() {
             {t('strategy.courseTitle')}
           </Link>
         )}
+        {id && (
+          <Link className="button" to={`/courses/${course.id}/map`}>
+            {t('map.courseMap')}
+          </Link>
+        )}
         {course.source === 'api' && course.externalId && (
           <button onClick={refresh}>{t('courses.refresh')}</button>
         )}

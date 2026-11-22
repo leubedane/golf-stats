@@ -1,6 +1,8 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Link, useParams } from 'react-router-dom';
+import { Fragment } from 'react';
 import { HoleStrategyCard } from '../components/HoleStrategyCard';
+import { HoleMapCard } from '../components/MapDrawing';
 import { db, saveStrategy } from '../db/db';
 import { courseDisplayName } from '../domain/course';
 import { strategyId, strategyTee } from '../domain/holeStrategy';
@@ -15,6 +17,7 @@ export function CourseStrategyPage() {
   const strategies = useLiveQuery(() => db.holeStrategies.where('courseId').equals(id).toArray(), [id]);
   const bag = useLiveQuery(() => db.clubs.orderBy('order').toArray());
   const settings = useLiveQuery(() => db.settings.get('settings')) ?? DEFAULT_SETTINGS;
+  const courseMap = useLiveQuery(async () => (await db.courseMaps.get(id)) ?? null, [id]);
 
   if (course === undefined || !strategies || !bag) return null;
   if (course === null) return <p>Course not found.</p>;
@@ -34,16 +37,18 @@ export function CourseStrategyPage() {
       </p>
       <p className="muted">{t('strategy.hint')}</p>
       {(tee?.holes ?? []).map((hole) => (
-        <HoleStrategyCard
-          key={hole.number}
-          courseId={course.id}
-          hole={hole}
-          strategy={byId.get(strategyId(course.id, hole.number))}
-          bag={bag}
-          t={t}
-          withHeading
-          onSave={(s) => saveStrategy(s)}
-        />
+        <Fragment key={hole.number}>
+          <HoleStrategyCard
+            courseId={course.id}
+            hole={hole}
+            strategy={byId.get(strategyId(course.id, hole.number))}
+            bag={bag}
+            t={t}
+            withHeading
+            onSave={(s) => saveStrategy(s)}
+          />
+          <HoleMapCard courseMap={courseMap} holeNumber={hole.number} t={t} />
+        </Fragment>
       ))}
     </>
   );

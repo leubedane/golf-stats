@@ -3,7 +3,7 @@ import { SEED_TUNIBERG_ID, TUNIBERG_PCCADDIE_ID, seedCourses } from '../courses/
 import { defaultBag } from '../domain/bag';
 import { isEmptyStrategy } from '../domain/holeStrategy';
 import { DEFAULT_SETTINGS } from '../domain/settings';
-import type { Club, Course, HoleStrategy, Round, Settings } from '../domain/types';
+import type { Club, Course, CourseMap, HoleStrategy, Round, Settings } from '../domain/types';
 
 export class GolfstatDb extends Dexie {
   settings!: EntityTable<Settings, 'id'>;
@@ -11,6 +11,7 @@ export class GolfstatDb extends Dexie {
   courses!: EntityTable<Course, 'id'>;
   rounds!: EntityTable<Round, 'id'>;
   holeStrategies!: EntityTable<HoleStrategy, 'id'>;
+  courseMaps!: EntityTable<CourseMap, 'courseId'>;
 
   constructor(name = 'golfstat') {
     super(name);
@@ -40,6 +41,10 @@ export class GolfstatDb extends Dexie {
     this.version(5).stores({
       holeStrategies: 'id, courseId',
     });
+    // Course Maps (OpenStreetMap features) also live apart from Courses, see ADR 0004.
+    this.version(6).stores({
+      courseMaps: 'courseId',
+    });
     this.on('populate', (tx) => tx.table('courses').bulkAdd(seedCourses()));
   }
 }
@@ -64,10 +69,11 @@ export async function saveStrategy(strategy: HoleStrategy, database: GolfstatDb 
   else await database.holeStrategies.put({ ...strategy, updatedAt: Date.now() });
 }
 
-/** Deletes a Course together with its Course Strategy. Rounds keep their own snapshot. */
+/** Deletes a Course together with its Course Strategy and Course Map. Rounds keep their own snapshot. */
 export async function deleteCourse(courseId: string, database: GolfstatDb = db): Promise<void> {
-  await database.transaction('rw', database.courses, database.holeStrategies, async () => {
+  await database.transaction('rw', database.courses, database.holeStrategies, database.courseMaps, async () => {
     await database.courses.delete(courseId);
     await database.holeStrategies.where('courseId').equals(courseId).delete();
+    await database.courseMaps.delete(courseId);
   });
 }

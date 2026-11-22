@@ -140,3 +140,43 @@ export interface HoleScore {
   teeResult?: TeeResult;
   penaltyStrokes?: number;
 }
+
+/** A position in WGS84 degrees, as stored in OpenStreetMap. */
+export interface LatLon {
+  lat: number;
+  lon: number;
+}
+
+export type MapFeatureKind = 'tee' | 'green' | 'fairway' | 'bunker' | 'water' | 'pin';
+
+/** One OpenStreetMap area (or, for a pin, a single point) of a Course Map. */
+export interface MapFeature {
+  osmId: number;
+  kind: MapFeatureKind;
+  points: LatLon[];
+}
+
+/** The OpenStreetMap line from the tee to the green of one Hole. */
+export interface HoleLine {
+  osmId: number;
+  /** Hole number as tagged in OSM (`ref`, or a number in `name`); absent when untagged. */
+  ref?: number;
+  points: LatLon[];
+}
+
+export interface OsmReference {
+  type: 'way' | 'relation';
+  id: number;
+}
+
+/** The OpenStreetMap features of a Course, stored apart from it (ADR 0004). */
+export interface CourseMap {
+  courseId: string;
+  osm: OsmReference;
+  osmName: string;
+  holeLines: HoleLine[];
+  features: MapFeature[];
+  /** Hole Lines assigned by the golfer; they win over OSM refs and survive a refresh. */
+  assignments: { holeNumber: number; osmId: number }[];
+  fetchedAt: number;
+}

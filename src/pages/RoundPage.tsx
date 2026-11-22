@@ -2,6 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { HoleStrategyCard } from '../components/HoleStrategyCard';
+import { HoleMapCard } from '../components/MapDrawing';
 import { db, saveStrategy } from '../db/db';
 import { strategyId } from '../domain/holeStrategy';
 import { effectiveScore, scoreMismatches, shotPlan, shotsScore } from '../domain/holeScore';
@@ -57,6 +58,8 @@ export function RoundPage() {
     async () => (round && holeNumber ? ((await db.holeStrategies.get(strategyId(round.courseId, holeNumber))) ?? null) : undefined),
     [round?.courseId, holeNumber],
   );
+  // null once loaded without a Course Map.
+  const courseMap = useLiveQuery(async () => (round ? ((await db.courseMaps.get(round.courseId)) ?? null) : undefined), [round?.courseId]);
 
   const history = useMemo(
     () => (allRounds ?? []).flatMap((r) => r.holes.flatMap((h) => h.shots)),
@@ -155,6 +158,8 @@ export function RoundPage() {
           onSave={(s) => saveStrategy(s)}
         />
       )}
+
+      <HoleMapCard courseMap={courseMap} holeNumber={hole.number} t={t} rememberOpen />
 
       <section className="card">
         <div className="row">

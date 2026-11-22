@@ -1,9 +1,12 @@
 import type { GolfstatDb } from './db';
-import type { Club, Course, HoleStrategy, Round, Settings } from '../domain/types';
+import type { Club, Course, CourseMap, HoleStrategy, Round, Settings } from '../domain/types';
 
 export const BACKUP_FORMAT = 'golfstat-backup';
-/** 4: Round holes may carry an entered Hole Score (`score`); older backups have none and import unchanged. */
-export const BACKUP_VERSION = 4;
+/**
+ * 4: Round holes may carry an entered Hole Score (`score`); older backups have none and import unchanged.
+ * 5: Course Maps (`courseMaps`); older backups import with none.
+ */
+export const BACKUP_VERSION = 5;
 
 export interface Backup {
   format: typeof BACKUP_FORMAT;
@@ -14,6 +17,7 @@ export interface Backup {
   courses: Course[];
   rounds: Round[];
   holeStrategies: HoleStrategy[];
+  courseMaps: CourseMap[];
 }
 
 export async function exportBackup(database: GolfstatDb): Promise<Backup> {
@@ -26,6 +30,7 @@ export async function exportBackup(database: GolfstatDb): Promise<Backup> {
     courses: await database.courses.toArray(),
     rounds: await database.rounds.toArray(),
     holeStrategies: await database.holeStrategies.toArray(),
+    courseMaps: await database.courseMaps.toArray(),
   };
 }
 
@@ -36,17 +41,18 @@ export function parseBackup(text: string): Backup {
     throw new Error(`Unsupported backup version: ${data.version}`);
   if (!Array.isArray(data.settings) || !Array.isArray(data.clubs) || !Array.isArray(data.courses))
     throw new Error('Backup file is incomplete');
-  // Version 1 backups predate rounds, versions 1 and 2 predate Hole Strategies.
+  // Version 1 backups predate rounds, versions 1 and 2 predate Hole Strategies, versions 1 to 4 predate Course Maps.
   return {
     ...(data as Backup),
     rounds: Array.isArray(data.rounds) ? data.rounds : [],
     holeStrategies: Array.isArray(data.holeStrategies) ? data.holeStrategies : [],
+    courseMaps: Array.isArray(data.courseMaps) ? data.courseMaps : [],
   };
 }
 
 /** Replaces all local data with the backup's contents. */
 export async function importBackup(database: GolfstatDb, backup: Backup): Promise<void> {
-  const tables = [database.settings, database.clubs, database.courses, database.rounds, database.holeStrategies];
+  const tables = [database.settings, database.clubs, database.courses, database.rounds, database.holeStrategies, database.courseMaps];
   await database.transaction('rw', tables, async () => {
     await Promise.all(tables.map((t) => t.clear()));
     await database.settings.bulkPut(backup.settings);
@@ -54,5 +60,6 @@ export async function importBackup(database: GolfstatDb, backup: Backup): Promis
     await database.courses.bulkPut(backup.courses);
     await database.rounds.bulkPut(backup.rounds);
     await database.holeStrategies.bulkPut(backup.holeStrategies);
+    await database.courseMaps.bulkPut(backup.courseMaps);
   });
 }

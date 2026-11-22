@@ -7,6 +7,7 @@ import { RoundSummaryPage } from './pages/RoundSummaryPage';
 import { CoursesPage } from './pages/CoursesPage';
 import { CourseSearchPage } from './pages/CourseSearchPage';
 import { CourseStrategyPage } from './pages/CourseStrategyPage';
+import { CourseMapPage } from './pages/CourseMapPage';
 import { ScorecardPage } from './pages/ScorecardPage';
 import { CourseEditPage } from './pages/CourseEditPage';
 import { BagPage } from './pages/BagPage';
@@ -29,6 +30,7 @@ export function App() {
           <Route path="/courses/new" element={<CourseEditPage />} />
           <Route path="/courses/:id" element={<CourseEditPage />} />
           <Route path="/courses/:id/strategy" element={<CourseStrategyPage />} />
+          <Route path="/courses/:id/map" element={<CourseMapPage />} />
           <Route path="/stats" element={<StatsPage />} />
           <Route path="/bag" element={<BagPage />} />
           <Route path="/settings" element={<SettingsPage />} />

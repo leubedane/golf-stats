@@ -19,6 +19,18 @@ One hole of a Course with a par, a length per Tee and a stroke index.
 The difficulty ranking of a Hole on its Course (1 = hardest).
 _Avoid_: Hole handicap
 
+**Course Map**:
+The OpenStreetMap features of a Course (Hole Lines, tees, greens, fairways, bunkers, water) stored offline as latitude/longitude, with the golfer's Hole Line assignments.
+_Avoid_: Layout, course plan, Bahnenverlauf
+
+**Hole Line**:
+The OpenStreetMap way (`golf=hole`) of one Hole: normally a line from the tee to the green, on some courses a closed outline of the hole.
+_Avoid_: Centerline, route
+
+**Hole Map**:
+The drawing of one Hole built from the Course Map: its Hole Line and the features near it, with the tee at the bottom and the green at the top.
+_Avoid_: Flyover, hole picture, hole plan
+
 ## Play
 
 **Round**:
