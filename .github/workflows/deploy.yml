@@ -27,6 +27,8 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+        env:
+          VITE_BUILD_COMMIT: ${{ github.sha }}
 
       # Pushes to main deploy to production; pull requests get a preview URL on their branch.
       - name: Deploy

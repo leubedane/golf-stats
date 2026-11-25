@@ -161,6 +161,17 @@ export function SettingsPage() {
         </div>
         {message && <p className="muted">{message}</p>}
       </section>
+
+      <section className="card">
+        <h2>{t('settings.version')}</h2>
+        <p className="muted">
+          {t('settings.built', {
+            date: new Date(__BUILD_TIME__).toLocaleString(settings.language, { dateStyle: 'medium', timeStyle: 'short' }),
+          })}
+          {' · '}
+          {import.meta.env.VITE_BUILD_COMMIT?.slice(0, 7) ?? t('settings.localBuild')}
+        </p>
+      </section>
     </>
   );
 }
