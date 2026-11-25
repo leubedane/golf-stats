@@ -1,4 +1,6 @@
-import { BrowserRouter, NavLink, Route, Routes } from 'react-router-dom';
+import type { ReactNode } from 'react';
+import { BrowserRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom';
+import { ErrorBoundary } from './components/ErrorScreen';
 import { useT } from './i18n/i18n';
 import { RoundsPage } from './pages/RoundsPage';
 import { NewRoundPage } from './pages/NewRoundPage';
@@ -14,11 +16,18 @@ import { BagPage } from './pages/BagPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { StatsPage } from './pages/StatsPage';
 
+/** A fresh boundary per page, so leaving a failed page recovers. */
+function PageBoundary({ children }: { children: ReactNode }) {
+  const { pathname, search } = useLocation();
+  return <ErrorBoundary key={pathname + search}>{children}</ErrorBoundary>;
+}
+
 export function App() {
   const t = useT();
   return (
     <BrowserRouter>
       <main className="page">
+        <PageBoundary>
         <Routes>
           <Route path="/" element={<RoundsPage />} />
           <Route path="/rounds/new" element={<NewRoundPage />} />
@@ -35,6 +44,7 @@ export function App() {
           <Route path="/bag" element={<BagPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
+        </PageBoundary>
       </main>
       <nav className="tabbar">
         <NavLink to="/" className={({ isActive }) => (isActive || location.pathname.startsWith('/rounds') ? 'active' : '')} end>{t('nav.rounds')}</NavLink>

@@ -278,3 +278,7 @@ table.data tbody th, table.data thead th:first-child { position: sticky; left: 0
 .ball-picker-map .map-drawing { flex: 1; min-height: 0; height: 100%; max-height: none; touch-action: none; user-select: none; }
 .ball-picker-map .ball-marker, .ball-picker-map .pin-marker { cursor: grab; }
 .ball-picker-footer { padding: 12px 16px; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+
+/* Shown instead of a white page when the app fails */
+.error-screen { margin-top: 16px; }
+.error-details { white-space: pre-wrap; word-break: break-word; font-size: 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px; max-height: 40vh; overflow: auto; }

@@ -15,6 +15,10 @@ export const en = {
   'common.edit': 'Edit',
   'common.saved': 'Saved',
   'common.confirmDelete': 'Delete "{name}"?',
+  'error.title': 'Something went wrong',
+  'error.help': 'Golfstat hit an error on this page. Your data is still on this device. Please send the text below, and if possible a backup, so the problem can be fixed.',
+  'error.home': 'Back to Rounds',
+  'error.reload': 'Reload',
 
   'settings.title': 'Settings',
   'settings.player': 'Player',

@@ -17,6 +17,10 @@ export const de: Record<MessageKey, string> = {
   'common.edit': 'Bearbeiten',
   'common.saved': 'Gespeichert',
   'common.confirmDelete': '„{name}“ löschen?',
+  'error.title': 'Etwas ist schiefgelaufen',
+  'error.help': 'Golfstat hat auf dieser Seite einen Fehler. Deine Daten sind weiterhin auf diesem Gerät. Bitte schicke den Text unten und wenn möglich ein Backup, damit der Fehler behoben werden kann.',
+  'error.home': 'Zurück zu den Runden',
+  'error.reload': 'Neu laden',
 
   'settings.title': 'Einstellungen',
   'settings.player': 'Spieler',
