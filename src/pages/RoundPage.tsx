@@ -4,6 +4,8 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { HoleStrategyCard } from '../components/HoleStrategyCard';
 import { HoleMapCard } from '../components/MapDrawing';
 import { db, saveStrategy } from '../db/db';
+import { defaultPinPosition, setPinPosition } from '../domain/ballPosition';
+import { holeMap } from '../domain/courseMap';
 import { strategyId } from '../domain/holeStrategy';
 import { effectiveScore, scoreMismatches, shotPlan, shotsScore } from '../domain/holeScore';
 import {
@@ -23,7 +25,7 @@ import { DEFAULT_SETTINGS } from '../domain/settings';
 import { baselineFor } from '../strokesGained/baselines';
 import { shotStrokesGained } from '../strokesGained/strokesGained';
 import { formatToPar } from './RoundsPage';
-import { ShotForm } from './ShotForm';
+import { ShotForm, type ShotMap } from './ShotForm';
 
 function formatDistance(m: number): string {
   return Number.isInteger(m) ? String(m) : m.toFixed(1);
@@ -61,6 +63,10 @@ export function RoundPage() {
   // null once loaded without a Course Map.
   const courseMap = useLiveQuery(async () => (round ? ((await db.courseMaps.get(round.courseId)) ?? null) : undefined), [round?.courseId]);
 
+  // The Hole Map's frame and the Course Map's default pin; the Round's own Pin Position wins once set.
+  const holeFrame = useMemo(() => (courseMap && holeNumber ? (holeMap(courseMap, holeNumber)?.frame ?? null) : null), [courseMap, holeNumber]);
+  const mapPin = useMemo(() => (courseMap && holeNumber ? defaultPinPosition(courseMap, holeNumber) : null), [courseMap, holeNumber]);
+
   const history = useMemo(
     () => (allRounds ?? []).flatMap((r) => r.holes.flatMap((h) => h.shots)),
     [allRounds],
@@ -88,8 +94,16 @@ export function RoundPage() {
   };
   const persist = (next: Round) => db.rounds.put(next);
 
+  const pin = hole.pin ?? mapPin;
+  const shotMap: ShotMap | undefined =
+    courseMap && holeFrame && pin
+      ? { courseMap, pin, tee: holeFrame.start, onPinChange: (p) => persist(setPinPosition(round, holeIndex, p)) }
+      : undefined;
+  // The first Ball Position fixes the Hole's Pin Position, so a later Course Map refresh does not move it.
+  const keepPin = (next: Round, placed: boolean) => (placed && shotMap && !hole.pin ? setPinPosition(next, holeIndex, shotMap.pin) : next);
+
   async function onSubmit(shot: Shot, action: 'next' | 'holed' | 'update') {
-    let next = saveShot(round!, holeIndex, shot);
+    let next = keepPin(saveShot(round!, holeIndex, shot), shot.position !== undefined);
     if (action === 'holed') next = finishHole(next, holeIndex, { kind: 'holed' });
     await persist(next);
     setEditingId(null);
@@ -159,7 +173,7 @@ export function RoundPage() {
         />
       )}
 
-      <HoleMapCard courseMap={courseMap} holeNumber={hole.number} t={t} rememberOpen />
+      <HoleMapCard courseMap={courseMap} holeNumber={hole.number} t={t} rememberOpen hole={hole} />
 
       <section className="card">
         <div className="row">
@@ -200,6 +214,7 @@ export function RoundPage() {
           history={history}
           t={t}
           editing={{ shot: hole.shots[editingIndex], index: editingIndex }}
+          map={shotMap}
           onSubmit={onSubmit}
           onPickUp={() => undefined}
           onCancel={() => setEditingId(null)}
@@ -217,7 +232,7 @@ export function RoundPage() {
           )}
           <button onClick={() => persist(reopenHole(round, holeIndex))}>{t('round.reopen')}</button>
         </div>
-      ) : strategy === undefined ? null : (
+      ) : strategy === undefined || courseMap === undefined ? null : (
         <ShotForm
           key={`new-${hole.number}-${hole.shots.length}`}
           hole={hole}
@@ -226,9 +241,11 @@ export function RoundPage() {
           t={t}
           plan={plan}
           teeClubId={strategy?.teeClubId ?? null}
+          map={shotMap}
           onSubmit={onSubmit}
-          onPickUp={async (lie, distanceM) => {
-            await persist(finishHole(round, holeIndex, { kind: 'pickedUp', lie, distanceM }));
+          onPickUp={async (lie, distanceM, position) => {
+            const outcome = { kind: 'pickedUp' as const, lie, distanceM, ...(position ? { position } : {}) };
+            await persist(keepPin(finishHole(round, holeIndex, outcome), position !== undefined));
             if (!isLast) goToHole(holeIndex + 1);
           }}
         />

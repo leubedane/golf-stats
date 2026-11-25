@@ -145,6 +145,19 @@ export interface MapView {
   viewBox: { x: number; y: number; width: number; height: number };
 }
 
+/** Converts between positions and a Hole Map's drawing coordinates (meters, tee at the bottom). */
+export interface HoleFrame {
+  toScreen: (p: LatLon) => MapPoint;
+  toLatLon: (p: MapPoint) => LatLon;
+  /** Where the hole starts (tee) and ends (green), as positions. */
+  start: LatLon;
+  end: LatLon;
+}
+
+export interface HoleMapView extends MapView {
+  frame: HoleFrame;
+}
+
 const EARTH_RADIUS_M = 6_371_008.8;
 const RAD = Math.PI / 180;
 
@@ -155,6 +168,27 @@ function projector(origin: LatLon) {
     x: (p.lon - origin.lon) * RAD * EARTH_RADIUS_M * cosLat,
     y: (p.lat - origin.lat) * RAD * EARTH_RADIUS_M,
   });
+}
+
+function unprojector(origin: LatLon) {
+  const cosLat = Math.cos(origin.lat * RAD);
+  return (m: MapPoint): LatLon => ({
+    lat: origin.lat + m.y / EARTH_RADIUS_M / RAD,
+    lon: origin.lon + m.x / (EARTH_RADIUS_M * cosLat) / RAD,
+  });
+}
+
+/** Straight-line distance in meters between two positions. */
+export function distanceBetweenM(a: LatLon, b: LatLon): number {
+  const p = projector(a)(b);
+  return Math.hypot(p.x, p.y);
+}
+
+/** True when a position lies inside a closed area. */
+export function isInside(p: LatLon, area: LatLon[]): boolean {
+  if (area.length < 3) return false;
+  const project = projector(p);
+  return insidePolygon({ x: 0, y: 0 }, area.map(project));
 }
 
 function segmentDistance(p: MapPoint, a: MapPoint, b: MapPoint): number {
@@ -267,11 +301,12 @@ const byDrawOrder = (a: MapShape, b: MapShape) => DRAW_ORDER.indexOf(a.kind) - D
  * rotated so the tee is at the bottom and the green at the top. Other features in view are faded.
  * Null without a Hole Line.
  */
-export function holeMap(map: CourseMap, holeNumber: number): MapView | null {
+export function holeMap(map: CourseMap, holeNumber: number, options: { allFeatures?: boolean } = {}): HoleMapView | null {
   const line = assignedHoleLines(map).get(holeNumber);
   if (!line) return null;
   const isArea = isHoleArea(line);
   const project = projector(line.points[0]);
+  const unproject = unprojector(line.points[0]);
   const linePts = line.points.map(project);
   const projected = map.features.map((f) => ({ osmId: f.osmId, kind: f.kind, pts: f.points.map(project) }));
   const [start, end] = holeAxis(linePts, isArea, projected);
@@ -280,6 +315,13 @@ export function holeMap(map: CourseMap, holeNumber: number): MapView | null {
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
   const toScreen = (p: MapPoint): MapPoint => ({ x: p.x * cos - p.y * sin, y: -(p.x * sin + p.y * cos) });
+  const fromScreen = (p: MapPoint): MapPoint => ({ x: p.x * cos - p.y * sin, y: -p.x * sin - p.y * cos });
+  const frame: HoleFrame = {
+    toScreen: (p) => toScreen(project(p)),
+    toLatLon: (p) => unproject(fromScreen(p)),
+    start: unproject(start),
+    end: unproject(end),
+  };
 
   const near = isArea ? NEAR_HOLE_AREA_M : NEAR_HOLE_LINE_M;
   const screenLine = linePts.map(toScreen);
@@ -301,9 +343,11 @@ export function holeMap(map: CourseMap, holeNumber: number): MapView | null {
   view.maxX += grow;
 
   return {
-    shapes: shapes.filter((s) => overlaps(boxOf(s.points), view)).sort(byDrawOrder),
+    // allFeatures keeps everything, for panning beyond the Hole when placing a ball.
+    shapes: (options.allFeatures ? shapes : shapes.filter((s) => overlaps(boxOf(s.points), view))).sort(byDrawOrder),
     lines: [{ osmId: line.osmId, points: screenLine, highlighted: true, area: isArea }],
     viewBox: { x: view.minX, y: view.minY, width: view.maxX - view.minX, height: view.maxY - view.minY },
+    frame,
   };
 }
 

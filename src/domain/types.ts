@@ -76,12 +76,14 @@ export interface Shot {
   shape?: ShotShape;
   shortGameType?: ShortGameType;
   break?: Break;
+  /** Ball Position before the Shot, set on the Hole Map (ADR 0005). Off the Green it determines distanceM. */
+  position?: LatLon;
 }
 
 export type HoleOutcome =
   | { kind: 'holed' }
   /** Ball picked up; the position it was lifted from ends the last Shot. */
-  | { kind: 'pickedUp'; lie: Lie; distanceM: number };
+  | { kind: 'pickedUp'; lie: Lie; distanceM: number; position?: LatLon };
 
 export interface RoundHole {
   number: number;
@@ -92,6 +94,8 @@ export interface RoundHole {
   outcome?: HoleOutcome;
   /** Hole Score as entered; absent while the hole's score follows its Shots. */
   score?: HoleScore;
+  /** Pin Position in this Round; set once a Ball Position is placed or the pin is moved (ADR 0005). */
+  pin?: LatLon;
 }
 
 export interface Round {

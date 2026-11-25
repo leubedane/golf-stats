@@ -339,4 +339,12 @@ export const de: Record<MessageKey, string> = {
   'map.notFound': 'OpenStreetMap hat keinen Golfplatz mit dieser ID.',
   'map.errorNetwork': 'Keine Verbindung zu OpenStreetMap. Versuche es erneut, wenn du online bist.',
   'map.errorServer': 'OpenStreetMap ist ausgelastet oder meldet einen Fehler. Versuche es später erneut.',
+  'map.placeBall': 'Ballposition auf der Karte setzen',
+  'map.moveBall': 'Ballposition auf der Karte verschieben',
+  'map.fromMap': 'Aus der Karte. Eine eingetippte Entfernung entfernt die Ballposition.',
+  'map.puttTyped': 'Auf dem Grün die Puttlänge eintippen.',
+  'map.placeTitle': 'Ballposition',
+  'map.placeHint': 'Tippe, wo der Ball liegt. Ziehe die Fahne, um die Fahnenposition zu verschieben.',
+  'map.placeReadout': '{lie} · {m} m zur Fahne',
+  'map.done': 'Fertig',
 };

@@ -5,8 +5,9 @@ export const BACKUP_FORMAT = 'golfstat-backup';
 /**
  * 4: Round holes may carry an entered Hole Score (`score`); older backups have none and import unchanged.
  * 5: Course Maps (`courseMaps`); older backups import with none.
+ * 6: Shots and pick-ups may carry a Ball Position (`position`), Round holes a Pin Position (`pin`); older backups have none (ADR 0005).
  */
-export const BACKUP_VERSION = 5;
+export const BACKUP_VERSION = 6;
 
 export interface Backup {
   format: typeof BACKUP_FORMAT;

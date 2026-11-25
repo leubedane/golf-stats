@@ -1,7 +1,8 @@
 import { courseDisplayName } from './course';
 import { effectiveScore } from './holeScore';
 import { newId } from './ids';
-import type { Club, Course, HoleOutcome, Lie, Round, RoundHole, Shot, Tee } from './types';
+import { mapDistanceM } from './ballPosition';
+import type { Club, Course, HoleOutcome, LatLon, Lie, Round, RoundHole, Shot, Tee } from './types';
 
 /** Shots from within this distance that are not on the Green are Around-the-Green. */
 export const AROUND_THE_GREEN_MAX_M = 27;
@@ -119,11 +120,13 @@ function withHole(round: Round, holeIndex: number, update: (h: RoundHole) => Rou
   return { ...round, holes: round.holes.map((h, i) => (i === holeIndex ? update(h) : h)) };
 }
 
+/** Saves a new or edited Shot. The first Shot of a Hole is always from the Tee. */
 export function saveShot(round: Round, holeIndex: number, shot: Shot): Round {
-  const s = normalizeShot(shot);
   return withHole(round, holeIndex, (h) => {
-    const exists = h.shots.some((x) => x.id === s.id);
-    return { ...h, shots: exists ? h.shots.map((x) => (x.id === s.id ? s : x)) : [...h.shots, s] };
+    const index = h.shots.findIndex((x) => x.id === shot.id);
+    const first = index === 0 || (index === -1 && h.shots.length === 0);
+    const s = normalizeShot(first ? { ...shot, lie: 'tee' } : shot);
+    return { ...h, shots: index >= 0 ? h.shots.map((x) => (x.id === s.id ? s : x)) : [...h.shots, s] };
   });
 }
 
@@ -155,11 +158,17 @@ export function finishRound(round: Round, now = Date.now()): Round {
 export interface ShotDraft {
   lie: Lie | null;
   distanceM: number;
+  position?: LatLon;
 }
 
-export function nextShotDraft(hole: RoundHole): ShotDraft {
-  if (hole.shots.length === 0) return { lie: 'tee', distanceM: hole.lengthM };
-  return { lie: null, distanceM: 0 };
+/**
+ * The first Shot starts on the Tee: at the tee and measured to the pin when the Hole has a Hole Map,
+ * otherwise at the scorecard length. Later Shots start blank.
+ */
+export function nextShotDraft(hole: RoundHole, onMap?: { tee: LatLon; pin: LatLon }): ShotDraft {
+  if (hole.shots.length > 0) return { lie: null, distanceM: 0 };
+  if (onMap) return { lie: 'tee', distanceM: mapDistanceM(onMap.tee, onMap.pin), position: onMap.tee };
+  return { lie: 'tee', distanceM: hole.lengthM };
 }
 
 /**

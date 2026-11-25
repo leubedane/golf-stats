@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import { BallPositionPicker } from '../components/BallPositionPicker';
 import { Chips } from '../components/Chips';
+import { distanceFromMap, lieAt, mapDistanceM } from '../domain/ballPosition';
 import { NumberField } from '../components/NumberField';
 import {
   defaultShortGameType,
@@ -16,6 +18,8 @@ import type { ShotPlan } from '../domain/holeScore';
 import type {
   Break,
   Club,
+  CourseMap,
+  LatLon,
   Lie,
   MissLength,
   MissSide,
@@ -27,6 +31,15 @@ import type {
 import type { Translate } from '../i18n/i18n';
 
 const LIES: Lie[] = ['tee', 'fairway', 'rough', 'bunker', 'fringe', 'recovery', 'green'];
+const TEE_ONLY: Lie[] = ['tee'];
+
+/** The Hole Map of the Hole being played, for placing Ball Positions (ADR 0005). */
+export interface ShotMap {
+  courseMap: CourseMap;
+  pin: LatLon;
+  tee: LatLon;
+  onPinChange: (pin: LatLon) => void;
+}
 const SIDES: MissSide[] = ['left', 'onTarget', 'right'];
 const LENGTHS: MissLength[] = ['short', 'good', 'long'];
 const SHAPES: ShotShape[] = ['hook', 'draw', 'straight', 'fade', 'slice'];
@@ -44,20 +57,26 @@ interface Props {
   plan?: ShotPlan;
   /** The Hole Strategy's Tee Club, preselected for the first Shot. */
   teeClubId?: string | null;
+  /** Absent for a Hole without a Hole Map: Shots are then entered without Ball Positions. */
+  map?: ShotMap;
   onSubmit: (shot: Shot, action: 'next' | 'holed' | 'update') => void;
-  onPickUp: (lie: Lie, distanceM: number) => void;
+  onPickUp: (lie: Lie, distanceM: number, position?: LatLon) => void;
   onDelete?: () => void;
   onCancel?: () => void;
 }
 
-export function ShotForm({ hole, bag, history, t, editing, plan, teeClubId, onSubmit, onPickUp, onDelete, onCancel }: Props) {
+export function ShotForm({ hole, bag, history, t, editing, plan, teeClubId, map, onSubmit, onPickUp, onDelete, onCancel }: Props) {
   const initial = editing?.shot;
-  const draft = nextShotDraft(hole);
+  const draft = nextShotDraft(hole, map && { tee: map.tee, pin: map.pin });
   const firstShot = !initial && hole.shots.length === 0;
+  // The first Shot of a Hole is always from the Tee, also when it is edited later.
+  const teeShot = (editing ? editing.index : hole.shots.length) === 0;
   // The Hole Strategy's Tee Club wins over the history suggestion, for the first Shot only.
   const strategyClub = firstShot && teeClubId && bag.some((c) => c.id === teeClubId) ? teeClubId : null;
-  const [lie, setLie] = useState<Lie | null>(initial?.lie ?? draft.lie ?? plan?.lie ?? null);
-  const [distanceM, setDistanceM] = useState(initial?.distanceM ?? draft.distanceM);
+  const [lie, setLie] = useState<Lie | null>(teeShot ? 'tee' : (initial?.lie ?? draft.lie ?? plan?.lie ?? null));
+  const [typedDistanceM, setDistanceM] = useState(initial?.distanceM ?? draft.distanceM);
+  const [position, setPosition] = useState<LatLon | undefined>(initial ? initial.position : draft.position);
+  const [placing, setPlacing] = useState(false);
   const [clubId, setClubId] = useState<string | null>(initial?.clubId ?? strategyClub);
   const [clubTouched, setClubTouched] = useState(Boolean(initial) || strategyClub !== null);
   const [shortGameType, setShortGameType] = useState(initial?.shortGameType);
@@ -68,6 +87,10 @@ export function ShotForm({ hole, bag, history, t, editing, plan, teeClubId, onSu
   const [penalty, setPenalty] = useState<0 | 1 | 2>(initial?.penaltyStrokes ?? 0);
   const [problems, setProblems] = useState<(ShotProblem | 'lieMissing')[]>([]);
 
+  // Off the Green a Ball Position on the map sets the Distance to Pin; otherwise the typed distance counts.
+  const fromMap = map !== undefined && lie !== null && distanceFromMap(lie, position);
+  const distanceM = fromMap ? mapDistanceM(position!, map!.pin) : typedDistanceM;
+
   // Keep suggesting a club until the golfer picks one.
   useEffect(() => {
     if (clubTouched || !lie) return;
@@ -75,8 +98,31 @@ export function ShotForm({ hole, bag, history, t, editing, plan, teeClubId, onSu
   }, [lie, distanceM, clubTouched, bag, history, hole.par]);
 
   function changeLie(next: Lie) {
+    // Keep the shown distance when the map stops providing it (e.g. switching to Green).
+    if (fromMap) setDistanceM(distanceM);
     setLie(next);
     const implied = defaultShortGameType(next);
+    setShortGameType((current) =>
+      implied ?? (current === 'bunkerShot' || current === 'fringePutt' ? undefined : current),
+    );
+  }
+
+  function typeDistance(m: number) {
+    setDistanceM(m);
+    // A typed distance wins: the ball on the map would contradict it.
+    if (fromMap) setPosition(undefined);
+  }
+
+  function placed(ball: LatLon, pin: LatLon) {
+    setPlacing(false);
+    if (map && (pin.lat !== map.pin.lat || pin.lon !== map.pin.lon)) map.onPinChange(pin);
+    setPosition(ball);
+    if (teeShot || !map) return;
+    const suggested = lieAt(map.courseMap, ball);
+    // Arriving on the Green: the putt distance is typed, so start it blank.
+    if (suggested === 'green' && lie !== 'green') setDistanceM(0);
+    setLie(suggested);
+    const implied = defaultShortGameType(suggested);
     setShortGameType((current) =>
       implied ?? (current === 'bunkerShot' || current === 'fringePutt' ? undefined : current),
     );
@@ -89,8 +135,10 @@ export function ShotForm({ hole, bag, history, t, editing, plan, teeClubId, onSu
     }
     const club = bag.find((c) => c.id === clubId);
     const base = initial ?? newShot({ lie, distanceM });
+    const { position: _previous, ...rest } = base;
     const shot: Shot = {
-      ...base,
+      ...rest,
+      ...(position ? { position } : {}),
       lie,
       distanceM,
       // A Club removed from the Bag since the Shot keeps its recorded name.
@@ -118,7 +166,7 @@ export function ShotForm({ hole, bag, history, t, editing, plan, teeClubId, onSu
       setProblems(lie ? ['distanceInvalid'] : ['lieMissing']);
       return;
     }
-    onPickUp(lie, distanceM);
+    onPickUp(lie, distanceM, position);
   }
 
   // The Hole Score says this is the last Shot: holing out becomes the main action.
@@ -140,14 +188,34 @@ export function ShotForm({ hole, bag, history, t, editing, plan, teeClubId, onSu
             : t('round.shotN', { n: hole.shots.length + 1 })}
       </h2>
 
+      {map && (
+        <button type="button" className="place-ball" onClick={() => setPlacing(true)}>
+          📍 {position ? t('map.moveBall') : t('map.placeBall')}
+        </button>
+      )}
+      {placing && map && (
+        <BallPositionPicker
+          courseMap={map.courseMap}
+          hole={hole}
+          ball={position}
+          pin={map.pin}
+          teeShot={teeShot}
+          t={t}
+          onDone={placed}
+          onCancel={() => setPlacing(false)}
+        />
+      )}
+
       <div className="field">
         <span>{t('shot.lie')}</span>
-        <Chips options={LIES} value={lie} onChange={(v) => v && changeLie(v)} label={(v) => t(`lie.${v}`)} columns={4} ariaLabel={t('shot.lie')} />
+        <Chips options={teeShot ? TEE_ONLY : LIES} value={lie} onChange={(v) => v && changeLie(v)} label={(v) => t(`lie.${v}`)} columns={4} ariaLabel={t('shot.lie')} />
       </div>
 
       <label className="field">
         <span>{putt ? t('shot.distanceGreen') : t('shot.distance')}</span>
-        <NumberField className="big-number" value={distanceM} blankZero onChange={setDistanceM} label={t('shot.distance')} />
+        <NumberField className="big-number" value={distanceM} blankZero onChange={typeDistance} label={t('shot.distance')} />
+        {fromMap && <small className="muted">{t('map.fromMap')}</small>}
+        {map && position && lie === 'green' && <small className="muted">{t('map.puttTyped')}</small>}
       </label>
 
       <div className="field">

@@ -41,7 +41,16 @@ One stroke at the ball, recorded with its Start Lie, Distance to Pin, Club and o
 _Avoid_: Stroke (reserved for scoring), hit
 
 **Lie**:
-Where the ball rests before a Shot: Tee, Fairway, Fringe, Rough, Bunker, Recovery or Green.
+Where the ball rests before a Shot: Tee, Fairway, Fringe, Rough, Bunker, Recovery or Green. The first Shot of a Hole is always from the Tee; later Shots can be from the Tee too (e.g. re-teeing after out of bounds).
+_Avoid_: Position (for the kind of ground)
+
+**Ball Position**:
+Where the ball lies on the Hole Map before a Shot, set by touch; the first Shot's Ball Position is on the tee. The next Shot's Ball Position is where the previous Shot finished.
+_Avoid_: Location, spot, landing point
+
+**Pin Position**:
+Where the hole is cut on the Green in one Round: taken from the Course Map's pin, or the middle of the Green, and movable by the golfer. Distance to Pin is measured to it.
+_Avoid_: Flag, pin placement
 
 **Fringe**:
 The closely mown collar around the Green; a Shot from the Fringe is Around-the-Green but is valued like a Fairway Lie.

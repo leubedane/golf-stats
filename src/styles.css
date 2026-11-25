@@ -261,3 +261,20 @@ table.data tbody th, table.data thead th:first-child { position: sticky; left: 0
 .map-line.area { stroke-dasharray: none; stroke-width: 1px; opacity: 0.6; }
 .map-line.area.highlighted { stroke-width: 2px; opacity: 1; }
 .hole-map .map-line.area.highlighted { stroke: #ffffff; opacity: 0.7; }
+
+/* Ball Positions and Pin Position on the Hole Map (ADR 0005) */
+.shot-trace { stroke: #ffffff; stroke-width: 2px; vector-effect: non-scaling-stroke; stroke-linecap: round; }
+.shot-dot { fill: #1b2420; stroke: #ffffff; }
+.shot-number { fill: #ffffff; font-weight: 700; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.marker-hit { fill: transparent; stroke: none; }
+.pin-pole { stroke: #1b2420; stroke-width: 2px; vector-effect: non-scaling-stroke; }
+.pin-flag { fill: #e53935; stroke: #ffffff; }
+.pin-hole { fill: #1b2420; stroke: #ffffff; }
+.ball { fill: #ffffff; stroke: #1b2420; stroke-width: 2px; }
+.place-ball { width: 100%; margin-bottom: 12px; }
+.ball-picker { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; background: var(--bg); }
+.ball-picker-header { display: flex; flex-direction: column; gap: 2px; padding: 12px 16px; padding-top: max(12px, env(safe-area-inset-top)); }
+.ball-picker-map { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 0 8px; }
+.ball-picker-map .map-drawing { flex: 1; min-height: 0; height: 100%; max-height: none; touch-action: none; user-select: none; }
+.ball-picker-map .ball-marker, .ball-picker-map .pin-marker { cursor: grab; }
+.ball-picker-footer { padding: 12px 16px; padding-bottom: max(12px, env(safe-area-inset-bottom)); }

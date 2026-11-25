@@ -65,6 +65,24 @@ describe('starting a round', () => {
     const r = startRound({ course: c, tee: c.tees[0], startHole: 1, holeCount: 18, handicap: 6.8 });
     expect(nextShotDraft(r.holes[1])).toEqual({ lie: 'tee', distanceM: 301 });
   });
+
+  it('first shot on a Hole Map starts at the tee, measured straight to the pin', () => {
+    const c = course();
+    const r = startRound({ course: c, tee: c.tees[0], startHole: 1, holeCount: 18, handicap: 6.8 });
+    const tee = { lat: 48, lon: 7.9 };
+    const pin = { lat: 48 + 250 / 111_195, lon: 7.9 };
+    expect(nextShotDraft(r.holes[1], { tee, pin })).toEqual({ lie: 'tee', distanceM: 250, position: tee });
+  });
+
+  it('the first Shot of a Hole is always from the Tee, later Shots may be too', () => {
+    const c = course();
+    let r = startRound({ course: c, tee: c.tees[0], startHole: 1, holeCount: 18, handicap: 6.8 });
+    r = saveShot(r, 0, shot('fairway', 300, 'Driver'));
+    r = saveShot(r, 0, shot('tee', 300, 'Driver')); // re-tee after out of bounds
+    expect(r.holes[0].shots.map((s) => s.lie)).toEqual(['tee', 'tee']);
+    r = saveShot(r, 0, { ...r.holes[0].shots[0], lie: 'rough' });
+    expect(r.holes[0].shots[0].lie).toBe('tee');
+  });
 });
 
 describe('playing a hole', () => {

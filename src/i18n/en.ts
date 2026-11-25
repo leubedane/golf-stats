@@ -337,6 +337,14 @@ export const en = {
   'map.notFound': 'OpenStreetMap has no golf course with this id.',
   'map.errorNetwork': 'No connection to OpenStreetMap. Try again when you are online.',
   'map.errorServer': 'OpenStreetMap is busy or returned an error. Try again later.',
+  'map.placeBall': 'Place Ball Position on map',
+  'map.moveBall': 'Move Ball Position on map',
+  'map.fromMap': 'From the map. Typing a distance removes the Ball Position.',
+  'map.puttTyped': 'On the green, enter the putt distance.',
+  'map.placeTitle': 'Ball Position',
+  'map.placeHint': 'Tap where the ball lies. Drag the flag to move the pin.',
+  'map.placeReadout': '{lie} · {m} m to the pin',
+  'map.done': 'Done',
 } as const;
 
 export type MessageKey = keyof typeof en;
